@@ -1,0 +1,35 @@
+block TC_ME1234 = {
+
+    untracked bool verboseInfo = true
+	
+    double dRPhiMax = 0.4
+    double dPhiMax = 1.e-3
+    double dRPhiFineMax = 0.2
+    double dPhiFineMax = 6.e-4
+    double chi2Max = 60.  		# was 20. pre ORCA_8_10_x
+    int32 minLayersApart = 0
+}
+
+block TC_ME1A = {
+
+    untracked bool verboseInfo = true
+		
+    double dRPhiMax = 0.2		# 2x less than other chambers
+    double dPhiMax = 0.66e-3	# 1.5x less than other chambers
+    double dRPhiFineMax = 0.1	# 2x less than other chambers
+    double dPhiFineMax = 4.e-4	# 1.5x less than other chambers
+    double chi2Max = 60.  		# was 20. pre ORCA_8_10_x
+    int32 minLayersApart = 0
+}
+    
+block CSCSegAlgoTC = {
+    
+    VPSet algo_psets = {
+        {using TC_ME1234}, {using TC_ME1A}
+    }
+		
+    # chamber_list ME1/a, ME1/b, ME1/1, ME1/2, ME2/1, ME2/2, ME3/1, ME3/2, ME4/1
+    vint32 parameters_per_chamber_type = {2, 1, 1, 1, 1, 1, 1, 1, 1}   
+
+    string algo_name = "CSCSegAlgoTC"
+}
