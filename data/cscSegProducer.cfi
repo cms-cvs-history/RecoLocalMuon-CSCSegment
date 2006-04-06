@@ -10,7 +10,7 @@ module segmentproducer = CSCSegmentProducer {
     string CSCRecHit2DProducer = "rechitproducer"
     
     # Choice of the building algo: 1 SK, 2 TC...
-    int32 algo_type = 2   
+    int32 algo_type = 1   
 
     # std::vector<edm::ParameterSet>
     VPSet algo_psets = {

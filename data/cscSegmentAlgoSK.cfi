@@ -1,6 +1,6 @@
 block SK_ME1234 = {
 
-    bool verboseInfo = true
+    untracked bool verboseInfo = true
 	
     double dRPhiMax = 0.4
     double dPhiMax = 1.e-3
