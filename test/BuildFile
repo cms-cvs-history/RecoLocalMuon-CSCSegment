@@ -1,0 +1,9 @@
+<use name=DataFormats/CSCRecHit>
+<use name=RecoLocalMuon/CSCSegment>
+<use name=FWCore/Framework>
+<use name=FWCore/ParameterSet>
+<use name=root>
+
+<library file=CSCSegmentReader.cc name=testCSCSegReader>
+   <flags SEAL_PLUGIN_NAME="testCSCSegReader">
+</library>
