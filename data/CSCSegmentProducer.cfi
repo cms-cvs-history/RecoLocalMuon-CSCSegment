@@ -4,10 +4,10 @@ include "RecoLocalMuon/CSCSegment/data/CSCSegmentAlgorithmTC.cfi"
 
 # module must be an EDProducer or similar
 # =======================================
-module segmentproducer = CSCSegmentProducer {
+module CSCSegmentProducer = CSCSegmentProducer {
     
     # Name of RecHitProducer producer module(s)...
-    string CSCRecHit2DProducer = "rechitproducer"
+    string CSCRecHit2DProducer = "CSCRecHit2DProducer"
     
     # Choice of the building algo: 1 SK, 2 TC...
     int32 algo_type = 1  
