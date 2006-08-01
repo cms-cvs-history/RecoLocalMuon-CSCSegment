@@ -6,8 +6,8 @@ include "RecoLocalMuon/CSCSegment/data/CSCSegmentAlgorithmTC.cfi"
 # =======================================
 module cscSegments = CSCSegmentProducer {
     
-    # Name of RecHitProducer producer module(s)...
-    string CSCRecHit2DProducer = "csc2DRecHits"
+    # Define input
+    InputTag inputObjects = csc2DRecHits
     
     # Choice of the building algo: 1 SK, 2 TC...
     int32 algo_type = 1  
