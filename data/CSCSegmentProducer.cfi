@@ -1,19 +1,4 @@
+#FIXME: please use the file below, this old one will disappear soon.
 
-include "RecoLocalMuon/CSCSegment/data/CSCSegmentAlgorithmSK.cfi"
-include "RecoLocalMuon/CSCSegment/data/CSCSegmentAlgorithmTC.cfi"
+include "RecoLocalMuon/CSCSegment/data/cscSegments.cfi"
 
-# module must be an EDProducer or similar
-# =======================================
-module cscSegments = CSCSegmentProducer {
-    
-    # Define input
-    InputTag inputObjects = csc2DRecHits
-    
-    # Choice of the building algo: 1 SK, 2 TC...
-    int32 algo_type = 1  
-
-    # std::vector<edm::ParameterSet>
-    VPSet algo_psets = {
-        {using CSCSegAlgoSK}, {using CSCSegAlgoTC}
-    }
-}
