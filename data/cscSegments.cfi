@@ -1,6 +1,6 @@
 
-include "RecoLocalMuon/CSCSegment/data/CSCSegmentsAlgorithmSK.cfi"
-include "RecoLocalMuon/CSCSegment/data/CSCSegmentsAlgorithmTC.cfi"
+include "RecoLocalMuon/CSCSegment/data/CSCSegmentAlgorithmSK.cfi"
+include "RecoLocalMuon/CSCSegment/data/CSCSegmentAlgorithmTC.cfi"
 
 # module must be an EDProducer or similar
 # =======================================
