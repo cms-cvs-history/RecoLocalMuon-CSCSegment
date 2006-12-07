@@ -4,20 +4,23 @@
 # segment and look for rechits within that cylinder
 
 block DF_ME1234 = {
-    untracked bool CSCDebug                 = false
-    untracked double nSigmaFromSegment      = 10.
+    untracked bool CSCSegmentDebug          = false
+    untracked double nSigmaFromSegment      = 30.
     untracked int32 minHitsPerSegment       = 3
     untracked int32 CSCSegmentPerChamberMax = 5
-    untracked double chi2Max                = 100.  	
+    untracked double chi2ndfProbMin         = 1.e-8 
+    untracked double chi2Max                = 60.       # unused
     untracked int32 minLayersApart          = 1
+
 }
 
 block DF_ME1A = {
-    untracked bool CSCDebug                 = false
-    untracked double nSigmaFromSegment      = 10.
+    untracked bool CSCSegmentDebug          = false
+    untracked double nSigmaFromSegment      = 6.
     untracked int32 minHitsPerSegment       = 3
     untracked int32 CSCSegmentPerChamberMax = 5
-    untracked double chi2Max                = 100.  	
+    untracked double chi2ndfProbMin         = 1.e-4 
+    untracked double chi2Max                = 60.       # unused	
     untracked int32 minLayersApart          = 1
 }
 
