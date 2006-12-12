@@ -8,3 +8,8 @@
 <library file=CSCSegmentReader.cc name=testCSCSegReader>
    <flags SEAL_PLUGIN_NAME="testCSCSegReader">
 </library>
+
+<library file=MTCCAnalysis/CSCMTCCAnalysis.cc name=CSCMTCCAnalysis>
+   <flags SEAL_PLUGIN_NAME="CSCMTCCAnalysis">
+</library>
+
