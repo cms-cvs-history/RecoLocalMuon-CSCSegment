@@ -186,8 +186,12 @@ void CSCMTCCAnalysis::analyze(const Event & event, const EventSetup& eventSetup)
   float rsd_a[6] ={0.0};
   float dx_a[6] ={0.0};
   float xPull[6]={0.0};
-  float SKrsdxWth[6]={0.0};
+  float SKrsduWth[6]={0.0};
+  float SKrsdu[6]={0.0};
+  int rht_ch[6] ={0};
+  bool rh_type[6] ={false,false,false,false,false,false};
   double rsd_Rdphi[6]={0.0};
+  double rsd_RdphiWth[6]={0.0};
   double X2c  = 999.0;
   int nhitsc = 999;
   int DetNu[4]={999}; 
@@ -275,6 +279,7 @@ void CSCMTCCAnalysis::analyze(const Event & event, const EventSetup& eventSetup)
       float rh_xfit=0.0; 
       float rh_yfit=0.0; 
       float rsdx[6]={0.0};
+      LocalPoint fit_lp;
 
 	 for (std::vector<CSCRecHit2D>::const_iterator rh_i = rh_V.begin(); rh_i!=rh_V.end(); ++rh_i)
          {
@@ -291,13 +296,12 @@ void CSCMTCCAnalysis::analyze(const Event & event, const EventSetup& eventSetup)
 
              rh_xfit = slx1*dz + seg1_org.x();
              rh_yfit = sly1*dz + seg1_org.y();
-
+             fit_lp = LocalPoint(rh_xfit, rh_yfit, 0.);
+  
              dx_rh = rh_xyz.x() - rh_xfit;  
              dy_rh = rh_xyz.y() - rh_yfit;  
 
-             if ( rh_err.xx() > 5.0 ){
-                wrong_rh_err = true;
-             }
+             wrong_rh_err = ( rh_err.xx() > 5.0 ? true : false);
 
              if (nhitsc == 6.0) {
                 int it = idr.layer() - 1;
@@ -337,6 +341,9 @@ void CSCMTCCAnalysis::analyze(const Event & event, const EventSetup& eventSetup)
          float rht_phi[6] ={0.0};
          float stripWth[6] ={0.0};
          float gR = 0.0;
+         float SKfit_u[6]={0.0};
+         float rht_u[6]={0.0};
+         float ang[6]={0.0};
 
          const std::vector<CSCRecHit2D>& rh_V1 = (*segIt_1).specificRecHits();
          CSCDetId idr1;
@@ -380,6 +387,10 @@ void CSCMTCCAnalysis::analyze(const Event & event, const EventSetup& eventSetup)
                    float rh1_fit_err =  err2[0] + (dzz[it2]*dzz[it2]*err2[2]) + (2.0*dzz[it2]*err2[4]);
                    xRecErr[it2] = rh1_err.xx();
                    xPull[it2] = dxx /sqrt(rh1_err.xx() - rh1_fit_err);  
+                   // rotate the x to u
+                   ang[it2] = 0.5*atan( 2.*rh1_err.xy()/(rh1_err.xx()-rh1_err.yy()) ); 
+                   rht_u[it2] = rht_x[it2]*cos(ang[it2])+rht_y[it2]*sin(ang[it2]);
+                   rht_ch[it2] = (csclayer->geometry())->nearestStrip(rh1_xyz);
                 }
 
                 // pick up the rest 5 hits and fill them in new vector rh_V0
@@ -405,9 +416,16 @@ void CSCMTCCAnalysis::analyze(const Event & event, const EventSetup& eventSetup)
             SKfit_y[it2]= sk_myz*dzz[it2] + sk_y;
  
             SKrsdx[it2]= rht_x[it2] - SKfit_x[it2];
-            SKrsdxWth[it2]= (rht_x[it2] - SKfit_x[it2])/stripWth[it2];
+            //SKrsdxWth[it2]= (rht_x[it2] - SKfit_x[it2])/stripWth[it2];
             SKrsdy[it2]= rht_y[it2] - SKfit_y[it2];
             rsd_a[it2] = SKrsdx[it2];
+             
+            // rotate dx to du
+            SKfit_u[it2]=   ( sk_mxz*cos(ang[it2])+sk_myz*sin(ang[it2]) )*dzz[it2] 
+                          + ( sk_x*cos(ang[it2])+sk_y*sin(ang[it2]) );
+            SKrsdu[it2]= rht_u[it2] - SKfit_u[it2];
+            SKrsduWth[it2]= SKrsdu[it2]/stripWth[it2];
+            //////////// 
 
             xFitErr[it2] =  err4[0] + (err4[2]*dzz[it2]*dzz[it2]) +(2.0*dzz[it2]*err4[4]);
 
@@ -417,6 +435,23 @@ void CSCMTCCAnalysis::analyze(const Event & event, const EventSetup& eventSetup)
 
             gR = sqrt( (gfit_xyz.x()*gfit_xyz.x()) + (gfit_xyz.y()*gfit_xyz.y()) );
             rsd_Rdphi[it2] = ( rht_phi[it2] - gfit_xyz.phi() )*gR;
+            rsd_RdphiWth[it2] = rsd_Rdphi[it2]/stripWth[it2];
+
+            // hit in centre of strip or edge of strip
+            int fh_ch = (csclayer_a->geometry())->nearestStrip(fit_xyz);
+            float angStrip = (csclayer_a->geometry())->stripAngle(fh_ch);
+            float xshift =  SKfit_y[it2] / fabs(tan(angStrip));
+            float x0OfStrip = (csclayer_a->geometry())->xOfStrip(fh_ch,fit_xyz.y());
+            float x1OfStrip = x0OfStrip + xshift ;
+            float fstripWth = (csclayer_a->geometry())->stripPitch(fit_xyz);
+            if ( fabs(SKfit_x[it2] - x0OfStrip) >= (0.50*fstripWth) ){
+               cout << "strip width= "<< fstripWth <<"  dx= " <<fabs(SKfit_x[it2] - x0OfStrip) <<endl;
+               cout << "x_strip@0= "<<x0OfStrip <<"  x shift= "<<SKfit_y[it2]/tan(angStrip)<<endl;
+               cout << "y = "<< SKfit_y[it2] <<" ang= "<<angStrip<<" tan(angle) = "<< tan(angStrip) <<endl;
+               cout <<"===================================================="<<endl;
+            }
+             rh_type[it2]=( fabs(SKfit_x[it2] - x0OfStrip) <= (0.35*fstripWth) ? true : false );
+        
 
          }
 
@@ -429,13 +464,23 @@ void CSCMTCCAnalysis::analyze(const Event & event, const EventSetup& eventSetup)
                   dmapping >> dmap[0] >> dmap[1] >> dmap[2] >> dmap[3] >> dmap[4];
                   if (dmap[0]==1 && idc.station()==dmap[2] && idc.ring()==dmap[3] && idc.chamber()==dmap[4] ){
                      histo3 = hChamber1[dmap[1]];
-                     histo3->Fill_f(SKrsdx[0],SKrsdx[1],SKrsdx[2],SKrsdx[3],SKrsdx[4],SKrsdx[5],SKrsdxWth[0],SKrsdxWth[1],SKrsdxWth[2],SKrsdxWth[3],SKrsdxWth[4],SKrsdxWth[5],xPull[0],xPull[1],xPull[2],xPull[3],xPull[4],xPull[5]);
+                     histo3->Fill_f(SKrsdx[0],SKrsdx[1],SKrsdx[2],SKrsdx[3],SKrsdx[4],SKrsdx[5],SKrsduWth[0],SKrsduWth[1],SKrsduWth[2],SKrsduWth[3],SKrsduWth[4],SKrsduWth[5],xPull[0],xPull[1],xPull[2],xPull[3],xPull[4],xPull[5]);
                      histo3->Fill_i(SKrsdy[0],SKrsdy[1],SKrsdy[2],SKrsdy[3],SKrsdy[4],SKrsdy[5],rsd_Rdphi[0],rsd_Rdphi[1],rsd_Rdphi[2],rsd_Rdphi[3],rsd_Rdphi[4],rsd_Rdphi[5]);
+                     //histo3->Fill_j(SKrsdu[0],SKrsdu[1],SKrsdu[2],SKrsdu[3],SKrsdu[4],SKrsdu[5]);
+                     histo3->Fill_j(rsd_RdphiWth[0],rsd_RdphiWth[1],rsd_RdphiWth[2],rsd_RdphiWth[3],rsd_RdphiWth[4],rsd_RdphiWth[5]);
+                     for (int k=0; k<6; k++ ) {
+                         histo3->Fill_l(rsd_Rdphi[k],rsd_RdphiWth[k],rht_y[k]);
+                     }
                   }
                   if (dmap[0]==2 && idc.station()==dmap[2] && idc.ring()==dmap[3] && idc.chamber()==dmap[4] ){
                      histo3 = hChamber2[dmap[1]];
-                     histo3->Fill_f(SKrsdx[0],SKrsdx[1],SKrsdx[2],SKrsdx[3],SKrsdx[4],SKrsdx[5],SKrsdxWth[0],SKrsdxWth[1],SKrsdxWth[2],SKrsdxWth[3],SKrsdxWth[4],SKrsdxWth[5],xPull[0],xPull[1],xPull[2],xPull[3],xPull[4],xPull[5]);
+                     histo3->Fill_f(SKrsdx[0],SKrsdx[1],SKrsdx[2],SKrsdx[3],SKrsdx[4],SKrsdx[5],SKrsduWth[0],SKrsduWth[1],SKrsduWth[2],SKrsduWth[3],SKrsduWth[4],SKrsduWth[5],xPull[0],xPull[1],xPull[2],xPull[3],xPull[4],xPull[5]);
                      histo3->Fill_i(SKrsdy[0],SKrsdy[1],SKrsdy[2],SKrsdy[3],SKrsdy[4],SKrsdy[5],rsd_Rdphi[0],rsd_Rdphi[1],rsd_Rdphi[2],rsd_Rdphi[3],rsd_Rdphi[4],rsd_Rdphi[5]);
+                     //histo3->Fill_j(SKrsdu[0],SKrsdu[1],SKrsdu[2],SKrsdu[3],SKrsdu[4],SKrsdu[5]);
+                     histo3->Fill_j(rsd_RdphiWth[0],rsd_RdphiWth[1],rsd_RdphiWth[2],rsd_RdphiWth[3],rsd_RdphiWth[4],rsd_RdphiWth[5]);
+                     for (int k=0; k<6; k++ ) {
+                         histo3->Fill_l(rsd_Rdphi[k],rsd_RdphiWth[k],rht_y[k]);
+                     }
                   }
             }
          }
@@ -452,7 +497,7 @@ void CSCMTCCAnalysis::analyze(const Event & event, const EventSetup& eventSetup)
           break;
               if ( (idc.station() == st) && (idc.ring() == rg) ){
                  histo = hRHPME[cbt_i];
-                 histo->Fill_c(xorgc,yorgc,X2c,nhitsc,slx1);
+                 histo->Fill_c(xorgc,yorgc,X2c,nhitsc,slx1,sly1);
                  if (seg_count1){ 
                     histo->Fill_a(nu_seg1);
                     nu_seg1=1;
@@ -461,7 +506,15 @@ void CSCMTCCAnalysis::analyze(const Event & event, const EventSetup& eventSetup)
                  if ((nhitsc ==6) && (!no_gatti) && (!wrong_rh_err) && (!y_edge)) {
                     histo->Fill_g(err1[0],err1[1],err1[2],err1[3],X2c,xRecErr[0],xRecErr[2],xRecErr[4],xFitErr[0] ,xFitErr[2],xFitErr[4]);
                     for (int k = 0; k < 6; k++) {
-                        histo->Fill_e(rsd_a[k],SKrsdxWth[k],rsd_Rdphi[k],xPull[k],X2c,slx1,sly1,xRecErr[k],dx_a[k],rht_y[k]);
+                        histo->Fill_e(rsd_a[k],SKrsdu[k],SKrsduWth[k],rsd_Rdphi[k],xPull[k],X2c,slx1,sly1,xRecErr[k],dx_a[k],rht_y[k],rht_ch[k]);
+                        //if (k==2){
+                           if (rh_type[k]==true){
+                              histo->Fill_h(SKrsduWth[k],rht_y[k]);
+                           } 
+                           if (rh_type[k]==false){
+                              histo->Fill_k(SKrsduWth[k],rht_y[k]);
+                           } 
+                        //}
                     }
                  } 
               }

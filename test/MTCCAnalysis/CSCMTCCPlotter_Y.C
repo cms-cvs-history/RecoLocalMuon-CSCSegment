@@ -1,4 +1,4 @@
-void CSCMTCCPlotter1_Y(int st, int rg, int cb){
+void CSCMTCCPlotter_Y(int st, int rg, int cb){
 
   /* Macro to plot histograms produced by CSCRecHitReader.cc
    * You may need to update the TFile name, and will need to
@@ -8,12 +8,12 @@ void CSCMTCCPlotter1_Y(int st, int rg, int cb){
    */
 
 
-float  nsigmas = 1.25;  // Number of sigmas around mean to fit gaussian.  It uses 2 iterations 
-                   // i.e. range is = [mu - nsigmas * sigma, mu + nsigmas * sigma]
+float nsigmas = 2.;  // Number of sigmas around mean to fit gaussian.  It uses 2 iterations 
+                      // i.e. range is = [mu - nsigmas * sigma, mu + nsigmas * sigma]
 
-TFile *file = TFile::Open("mtccplots_4241_DF_uc.root");
+TFile *file = TFile::Open("mtccplots_4241_TC_UnCalib.root");
 
-TString suffixps = ".jpg";
+TString suffixps = ".eps";
 
 char det_str[9];
 char det_typ[6];
@@ -23,23 +23,18 @@ char det_typ[6];
  TString segtype = det_typ;
 // Files for histogram output --> set suffixps to desired file type:  e.g. .eps, .jpg, ...
 
- TString plot01 = "ResidualY1_"+segment+suffixps;
- TString plot02 = "ResidualY2_"+segment+suffixps;
- TString plot03 = "ResidualY3_"+segment+suffixps;
- TString plot04 = "ResidualY4_"+segment+suffixps;
- TString plot05 = "ResidualY5_"+segment+suffixps;
- TString plot06 = "ResidualY6_"+segment+suffixps;
- TString plot07 = "Residual_Rdphi1_"+segment+suffixps; 
- TString plot08 = "Residual_Rdphi2_"+segment+suffixps; 
- TString plot09 = "Residual_Rdphi3_"+segment+suffixps; 
- TString plot10 = "Residual_Rdphi4_"+segment+suffixps; 
- TString plot11 = "Residual_Rdphi5_"+segment+suffixps; 
- TString plot12 = "Residual_Rdphi6_"+segment+suffixps;
- //TString plot16 = "X2c6hits_"+segtype+suffixps;
- //TString plot17 = "Err1OrgX_"+segtype+suffixps;
- //TString plot18 = "Err1VecX_"+segtype+suffixps;
- //TString plot19 = "Err3OrgX_"+segtype+suffixps;
- //TString plot20 = "Err3VecX_"+segtype+suffixps;
+ TString plot01 = "resy_l1_"+segment+suffixps;
+ TString plot02 = "resy_l2_"+segment+suffixps;
+ TString plot03 = "resy_l3_"+segment+suffixps;
+ TString plot04 = "resy_l4_"+segment+suffixps;
+ TString plot05 = "resy_l5_"+segment+suffixps;
+ TString plot06 = "resy_l6_"+segment+suffixps;
+ TString plot07 = "rdphi_l1_"+segment+suffixps; 
+ TString plot08 = "rdphi_l2_"+segment+suffixps; 
+ TString plot09 = "rdphi_l3_"+segment+suffixps; 
+ TString plot10 = "rdphi_l4_"+segment+suffixps; 
+ TString plot11 = "rdphi_l5_"+segment+suffixps; 
+ TString plot12 = "rdphi_l6_"+segment+suffixps;
   
 
 // ********************************************************************
@@ -61,24 +56,18 @@ char det_typ[6];
     hrsd_Rdphi6    = (TH1F *) file->Get(segment+"_hrsd_Rdphi6");
 
 
-//    hX2        = (TH1F *) file->Get(segment+"_hX2");
-//    hErr1OrgX  = (TH1F *) file->Get(segment+"_hErr1OrgX");
-//    hErr1VecX  = (TH1F *) file->Get(segment+"_hErr1VecX");
-//    hErr3OrgX  = (TH1F *) file->Get(segment+"_hErr3OrgX");
-//    hErr3VecX  = (TH1F *) file->Get(segment+"_hErr3VecX");
-
 // *****************************************************************
-// 1) Local X position
+// A) Residual in local Y position
 // *****************************************************************
 
-// 1) x rsd 1
+// 1)
  gStyle->SetOptStat(kFALSE);  
  TCanvas *c1 = new TCanvas("c1","");
  c1->SetFillColor(10);
  c1->SetFillColor(10);
  hSKrsdy1->SetTitle(segment);
 // hSKrsdy1->Draw();
- hSKrsdy1->GetXaxis()->SetTitle("y residual of layer1 (cm)");
+ hSKrsdy1->GetXaxis()->SetTitle("#Delta y_{1} (cm)");
  hSKrsdy1->GetYaxis()->SetTitle(" ");
  hSKrsdy1->Fit("gaus");
  float par0 = gaus->GetParameter(0);
@@ -111,7 +100,7 @@ char det_typ[6];
  c1->SetFillColor(10);
  hSKrsdy2->SetTitle(segment);
 // hSKrsdy2->Draw();
- hSKrsdy2->GetXaxis()->SetTitle("y residual of layer2 (cm)");
+ hSKrsdy2->GetXaxis()->SetTitle("#Delta y_{2} (cm)");
  hSKrsdy2->GetYaxis()->SetTitle(" ");
  hSKrsdy2->Fit("gaus");
  float par0 = gaus->GetParameter(0);
@@ -144,7 +133,7 @@ char det_typ[6];
  c1->SetFillColor(10);
  hSKrsdy3->SetTitle(segment);
 // hSKrsdy3->Draw();
- hSKrsdy3->GetXaxis()->SetTitle("y residual of layer3 (cm)");
+ hSKrsdy3->GetXaxis()->SetTitle("#Delta y_{3} (cm)");
  hSKrsdy3->GetYaxis()->SetTitle(" ");
  hSKrsdy3->Fit("gaus");
  float par0 = gaus->GetParameter(0);
@@ -176,7 +165,7 @@ char det_typ[6];
  c1->SetFillColor(10);
  hSKrsdy4->SetTitle(segment);
 // hSKrsdy4->Draw();
- hSKrsdy4->GetXaxis()->SetTitle("y residual of layer4 (cm)");
+ hSKrsdy4->GetXaxis()->SetTitle("#Delta y_{4} (cm)");
  hSKrsdy4->GetYaxis()->SetTitle(" ");
  hSKrsdy4->Fit("gaus");
  float par0 = gaus->GetParameter(0);
@@ -208,7 +197,7 @@ char det_typ[6];
  c1->SetFillColor(10);
  hSKrsdy5->SetTitle(segment);
 // hSKrsdy5->Draw();
- hSKrsdy5->GetXaxis()->SetTitle("y residual of layer5 (cm)");
+ hSKrsdy5->GetXaxis()->SetTitle("#Delta y_{5} (cm)");
  hSKrsdy5->GetYaxis()->SetTitle(" ");
  hSKrsdy5->Fit("gaus");
  float par0 = gaus->GetParameter(0);
@@ -240,7 +229,7 @@ char det_typ[6];
  c1->SetFillColor(10);
  hSKrsdy6->SetTitle(segment);
 // hSKrsdy6->Draw();
- hSKrsdy6->GetXaxis()->SetTitle("y residual of layer6 (cm)");
+ hSKrsdy6->GetXaxis()->SetTitle("Delta y_{6} (cm)");
  hSKrsdy6->GetYaxis()->SetTitle(" ");
  hSKrsdy6->Fit("gaus");
  float par0 = gaus->GetParameter(0);
@@ -273,7 +262,7 @@ char det_typ[6];
  c1->SetFillColor(10);
  hrsd_Rdphi1->SetTitle(segment);
 // hrsd_Rdphi1->Draw();
- hrsd_Rdphi1->GetXaxis()->SetTitle("Residual Rdphi of layer1 (cm)");
+ hrsd_Rdphi1->GetXaxis()->SetTitle("r #Delta#phi_{1} (cm)");
  hrsd_Rdphi1->GetYaxis()->SetTitle(" ");
  hrsd_Rdphi1->Fit("gaus");
  float par0 = gaus->GetParameter(0);
@@ -305,7 +294,7 @@ char det_typ[6];
  c1->SetFillColor(10);
  hrsd_Rdphi2->SetTitle(segment);
 // hrsd_Rdphi2->Draw();
- hrsd_Rdphi2->GetXaxis()->SetTitle("Residual Rdphi of layer2 (cm)");
+ hrsd_Rdphi2->GetXaxis()->SetTitle("r #Delta#phi_{2} (cm)");
  hrsd_Rdphi2->GetYaxis()->SetTitle(" ");
  hrsd_Rdphi2->Fit("gaus");
  float par0 = gaus->GetParameter(0);
@@ -337,7 +326,7 @@ char det_typ[6];
  c1->SetFillColor(10);
  hrsd_Rdphi3->SetTitle(segment);
 // hrsd_Rdphi3->Draw();
- hrsd_Rdphi3->GetXaxis()->SetTitle("Residual Rdphi of layer3 (cm)");
+ hrsd_Rdphi3->GetXaxis()->SetTitle("r #Delta#phi_{3} (cm)");
  hrsd_Rdphi3->GetYaxis()->SetTitle(" ");
  hrsd_Rdphi3->Fit("gaus");
  float par0 = gaus->GetParameter(0);
@@ -369,7 +358,7 @@ char det_typ[6];
  c1->SetFillColor(10);
  hrsd_Rdphi4->SetTitle(segment);
 // hrsd_Rdphi4->Draw();
- hrsd_Rdphi4->GetXaxis()->SetTitle("Residual Rdphi of layer4 (cm)");
+ hrsd_Rdphi4->GetXaxis()->SetTitle("r #Delta#phi_{4} (cm)");
  hrsd_Rdphi4->GetYaxis()->SetTitle(" ");
  hrsd_Rdphi4->Fit("gaus");
  float par0 = gaus->GetParameter(0);
@@ -401,7 +390,7 @@ char det_typ[6];
  c1->SetFillColor(10);
  hrsd_Rdphi5->SetTitle(segment);
 // hrsd_Rdphi5->Draw();
- hrsd_Rdphi5->GetXaxis()->SetTitle("Residual Rdphi of layer5 (cm)");
+ hrsd_Rdphi5->GetXaxis()->SetTitle("r #Delta#phi_{5} (cm)");
  hrsd_Rdphi5->GetYaxis()->SetTitle(" ");
  hrsd_Rdphi5->Fit("gaus");
  float par0 = gaus->GetParameter(0);
@@ -433,7 +422,7 @@ char det_typ[6];
  c1->SetFillColor(10);
  hrsd_Rdphi6->SetTitle(segment);
 // hrsd_Rdphi6->Draw();
- hrsd_Rdphi6->GetXaxis()->SetTitle("Residual Rdphi of layer6 (cm)");
+ hrsd_Rdphi6->GetXaxis()->SetTitle("r #Delta#phi_{6} (cm)");
  hrsd_Rdphi6->GetYaxis()->SetTitle(" ");
  hrsd_Rdphi6->Fit("gaus");
  float par0 = gaus->GetParameter(0);
@@ -457,62 +446,6 @@ char det_typ[6];
  hrsd_Rdphi6->Fit("gaus","R","",low,hi);
  c1->Print(plot12);
 
-/*// 16) X2 for 6 hits  Segments 
- gStyle->SetOptStat(kTRUE);
- TCanvas *c1 = new TCanvas("c1","");
- c1->SetFillColor(10);
- c1->SetFillColor(10);
- hX2->SetTitle(segtype);
- hX2->Draw();
- hX2->GetXaxis()->SetTitle(" Chi^2 ");
- hX2->GetYaxis()->SetTitle(" ");   
- c1->Print(plot16);
-
-
-// 17) Number of Segments / chamber
- gStyle->SetOptStat(kTRUE);
- TCanvas *c1 = new TCanvas("c1","");
- c1->SetFillColor(10);
- c1->SetFillColor(10);
- hErr1OrgX->SetTitle(segtype);
- hErr1OrgX->Draw();
- hErr1OrgX->GetXaxis()->SetTitle(" X Errors of Segment Vector ");
- hErr1OrgX->GetYaxis()->SetTitle(" ");   
- c1->Print(plot17);
-
-// 18) Number of Segments / chamber
- gStyle->SetOptStat(kTRUE);
- TCanvas *c1 = new TCanvas("c1","");
- c1->SetFillColor(10);
- c1->SetFillColor(10);
- hErr1VecX->SetTitle(segtype);
- hErr1VecX->Draw();
- hErr1VecX->GetXaxis()->SetTitle(" X Errors of Segment Origin ");
- hErr1VecX->GetYaxis()->SetTitle(" ");   
- c1->Print(plot18);
-
-// 19) Number of Segments / chamber
- gStyle->SetOptStat(kTRUE);
- TCanvas *c1 = new TCanvas("c1","");
- c1->SetFillColor(10);
- c1->SetFillColor(10);
- hErr3OrgX->SetTitle(segtype);
- hErr3OrgX->Draw();
- hErr3OrgX->GetXaxis()->SetTitle(" X Errors of Segment Origin ");
- hErr3OrgX->GetYaxis()->SetTitle(" ");   
- c1->Print(plot19);
-
-// 20) Number of Segments / chamber
- gStyle->SetOptStat(kTRUE);
- TCanvas *c1 = new TCanvas("c1","");
- c1->SetFillColor(10);
- c1->SetFillColor(10);
- hErr3VecX->SetTitle(segtype);
- hErr3VecX->Draw();
- hErr3VecX->GetXaxis()->SetTitle(" X Errors of Segment Vector ");
- hErr3VecX->GetYaxis()->SetTitle(" ");   
- c1->Print(plot20);
-*/
 
  gROOT->ProcessLine(".q");
 

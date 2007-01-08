@@ -2,7 +2,7 @@
 #define CSCSegment_CSCMTCCHistograms_H
 
 /** \class CSCMTCCHistograms
- *  Collection of histograms for 1D DT RecHit test.
+ *  Collection of histograms for CSC Residuals in MTCC test.
  *
  * Author: D. Fortin  - UC Riverside
  */
@@ -33,16 +33,23 @@ public:
     hNSeg1 = new TH1F(N+"_hNSeg1", "# of segment/events ", 15, 0., 15.);
 //
 
-    hslx1      = new TH1F(N+"_hslx1", "slope from vector xz ", 500, -5., 5.);
+    hslx1      = new TH1F(N+"_hslx1", "slope from vector dx/dz ", 501, -3., 3.);
+    hsly1      = new TH1F(N+"_hsly1", "slope from vector dy/dz ", 501, -3., 3.);
     hxRsd_Y    = new TH2F(N+"_hxRsd_Y", "unbias x residual vs Y", 20, -160., 160., 240, -0.6, 0.6);
-    hxRsdWth_Y = new TH2F(N+"_hxRsdWth_Y", "unbias x residual(strip width) vs Y", 20, -160., 160., 240, -0.6, 0.6);
+    hu1Rsd_Y   = new TH2F(N+"_hu1Rsd_Y", "unbias u residual(centre) vs Y", 20, -160., 160., 240, -0.6, 0.6);
+    hu2Rsd_Y   = new TH2F(N+"_hu2Rsd_Y", "unbias u residual(edge) vs Y", 20, -160., 160., 240, -0.6, 0.6);
+    huRsdWth_Y = new TH2F(N+"_huRsdWth_Y", "unbias x residual(strip width) vs Y", 20, -160., 160., 240, -0.6, 0.6);
     hRdphiRsd_Y= new TH2F(N+"_hRdphiRsd_Y", "unbias Rdphi residual vs Y", 20, -160., 160., 240, -0.6, 0.6);
+    hRdphi_x   = new TH2F(N+"_hRdphi_x", "unbias Rdphi residual vs xRsd", 240, -0.8, 0.8, 240, -0.8, 0.8);
+    hRdphi_u   = new TH2F(N+"_hRdphi_u", "unbias Rdphi residual vs uRsd", 240, -0.8, 0.8, 240, -0.8, 0.8);
+    hxRsd_ch   = new TH2F(N+"_hxRsd_ch", "unbias x residual vs ch#", 100, 0., 100., 240, -0.6, 0.6);
+    huRsd_ch   = new TH2F(N+"_huRsd_ch", "unbias u residual vs ch#", 100, 0., 100., 240, -0.6, 0.6);
     hxPull_Y   = new TH2F(N+"_hxPull_Y", " x Pull vs Y", 20, -160., 160., 105, -10., 10.);
-    hxPull_X2  = new TH2F(N+"_hxPull_X2", " x Pull vs X2", 160, 0., 80., 105, -10., 10.);
-    hxPull_slx = new TH2F(N+"_hxPull_slx", " x Pull vs slop x", 40, -1., 1., 105, -10., 10.);
-    hxPull_sly = new TH2F(N+"_hxPull_sly", " x Pull vs slop y", 120, -3., 3.,105, -10., 10.);
-    hxPull_err = new TH2F(N+"_hxPull_err", " x Pull vs err x", 300, 0., 0.03,105, -10., 10.);
-    hxPull_dx  = new TH2F(N+"_hxPull_dx", " x Pull vs dx ", 240, -0.6, 0.6,105, -10., 10.);
+    hxRsd_X2   = new TH2F(N+"_hxRsd_X2", " x Rsd vs X2", 160, 0., 80., 105, -1., 1.);
+    hxRsd_slx  = new TH2F(N+"_hxRsd_slx", " x Rsd vs slop x", 40, -1., 1., 105, -1., 1.);
+    hxRsd_sly  = new TH2F(N+"_hxRsd_sly", " x Rsd vs slop y", 120, -3., 3.,105, -1., 1.);
+    hxRsd_err  = new TH2F(N+"_hxRsd_err", " x Rsd vs err x", 300, 0., 0.03,105, -1., 1.);
+    hxRsd_dx   = new TH2F(N+"_hxRsd_dx", " x Rsd vs dx ", 240, -0.6, 0.6,105, -1., 1.);
     hdx_err    = new TH2F(N+"_hdx_err", " dx  vs err x ", 240, -0.6, 0.6,300, 0., 0.03);
 // Errors
     hErr1OrgX  = new TH1F(N+"_hErr1OrgX", " Error1 origin X", 200, 0., 0.1);  
@@ -75,15 +82,22 @@ public:
 //
 
     hslx1       = (TH1F *) file->Get(name+"_hslx1");
-    hxRsd_Y     = (TH2F *) file->Get(name+"_hxRrsd_Y");
-    hxRsdWth_Y  = (TH2F *) file->Get(name+"_hxRrsdWth_Y");
-    hRdphiRsd_Y = (TH2F *) file->Get(name+"_hRdphiRrsd_Y");
+    hsly1       = (TH1F *) file->Get(name+"_hsly1");
+    hxRsd_Y     = (TH2F *) file->Get(name+"_hxRsd_Y");
+    hu1Rsd_Y    = (TH2F *) file->Get(name+"_hu1Rsd_Y");
+    hu2Rsd_Y    = (TH2F *) file->Get(name+"_hu2Rsd_Y");
+    huRsdWth_Y  = (TH2F *) file->Get(name+"_huRsdWth_Y");
+    hRdphiRsd_Y = (TH2F *) file->Get(name+"_hRdphiRsd_Y");
+    hRdphi_x    = (TH2F *) file->Get(name+"_hRdphi_x");
+    hRdphi_u    = (TH2F *) file->Get(name+"_hRdphi_u");
+    hxRsd_ch    = (TH2F *) file->Get(name+"_hxRsd_ch");
+    huRsd_ch    = (TH2F *) file->Get(name+"_huRsd_ch");
     hxPull_Y    = (TH2F *) file->Get(name+"_hxPull_Y");
-    hxPull_X2   = (TH2F *) file->Get(name+"_hxPull_X2");
-    hxPull_slx  = (TH2F *) file->Get(name+"_hxPull_slx");
-    hxPull_sly  = (TH2F *) file->Get(name+"_hxPull_sly");
-    hxPull_err  = (TH2F *) file->Get(name+"_hxPull_err");
-    hxPull_dx   = (TH2F *) file->Get(name+"_hxPull_dx");
+    hxRsd_X2    = (TH2F *) file->Get(name+"_hxRsd_X2");
+    hxRsd_slx   = (TH2F *) file->Get(name+"_hxRsd_slx");
+    hxRsd_sly   = (TH2F *) file->Get(name+"_hxRsd_sly");
+    hxRsd_err   = (TH2F *) file->Get(name+"_hxRsd_err");
+    hxRsd_dx    = (TH2F *) file->Get(name+"_hxRsd_dx");
     hdx_err     = (TH2F *) file->Get(name+"_hdx_err");
 
     hErr1OrgX  = (TH1F *) file->Get(name+"_hErr1OrgX");
@@ -115,15 +129,22 @@ public:
     delete hNSeg1;
 // residual
     delete hslx1;
+    delete hsly1;
     delete hxRsd_Y;
-    delete hxRsdWth_Y;
+    delete hu1Rsd_Y;
+    delete hu2Rsd_Y;
+    delete huRsdWth_Y;
     delete hRdphiRsd_Y;
+    delete hRdphi_x;
+    delete hRdphi_u;
+    delete hxRsd_ch;
+    delete huRsd_ch;
     delete hxPull_Y;
-    delete hxPull_X2;
-    delete hxPull_slx;
-    delete hxPull_sly;
-    delete hxPull_err;
-    delete hxPull_dx;
+    delete hxRsd_X2;
+    delete hxRsd_slx;
+    delete hxRsd_sly;
+    delete hxRsd_err;
+    delete hxRsd_dx;
     delete hdx_err;
 
     delete hErr1OrgX;
@@ -143,7 +164,7 @@ public:
 
 
   /// Fill all the histos
-  void Fill_c(float xorgc, float yorgc, double X2c, int nhitsc, float slx1) {
+  void Fill_c(float xorgc, float yorgc, double X2c, int nhitsc, float slx1, float sly1) {
 // X
     hOrgX->Fill(xorgc);
 // Y  
@@ -154,6 +175,7 @@ public:
     hNHits->Fill(nhitsc);
 // 
     hslx1->Fill(slx1);
+    hsly1->Fill(sly1);
   
   }
 
@@ -162,17 +184,29 @@ public:
        hNSeg1->Fill(nu_seg1);
   }
 
-  void Fill_e(float xRsd, float xRsdWth, float rsd_Rdphi, float xPull, double X2, float slx1, float sly1,float xerr, float dx, float rht_y) {
+  void Fill_h(float u1RsdWth, float rht_y) {
+       hu1Rsd_Y->Fill(rht_y,u1RsdWth);
+  }
+
+  void Fill_k(float u2RsdWth, float rht_y) {
+       hu2Rsd_Y->Fill(rht_y,u2RsdWth);
+  }
+
+  void Fill_e(float xRsd, float uRsd, float xRsdWth, float rsd_Rdphi, float xPull, double X2, float slx1, float sly1,float xerr, float dx, float rht_y, float rht_ch) {
 
        hxRsd_Y->Fill(rht_y,xRsd);
-       hxRsdWth_Y->Fill(rht_y,xRsdWth);
+       huRsdWth_Y->Fill(rht_y,xRsdWth);
        hRdphiRsd_Y->Fill(rht_y,rsd_Rdphi);
+       hRdphi_x->Fill(xRsd,rsd_Rdphi);
+       hRdphi_u->Fill(uRsd,rsd_Rdphi);
+       hxRsd_ch->Fill(rht_ch,xRsd);
+       huRsd_ch->Fill(rht_ch,uRsd);
        hxPull_Y->Fill(rht_y,xPull);
-       hxPull_X2->Fill(X2,xPull);
-       hxPull_slx->Fill(slx1,xPull);
-       hxPull_sly->Fill(sly1,xPull);
-       hxPull_err->Fill(xerr,xPull);
-       hxPull_dx->Fill(dx,xPull);
+       hxRsd_X2->Fill(X2,rsd_Rdphi);
+       hxRsd_slx->Fill(slx1,rsd_Rdphi);
+       hxRsd_sly->Fill(sly1,rsd_Rdphi);
+       hxRsd_err->Fill(xerr,rsd_Rdphi);
+       hxRsd_dx->Fill(dx,rsd_Rdphi);
        hdx_err->Fill(dx,xerr);
 
   }
@@ -208,15 +242,22 @@ public:
     hNSeg1->Write();
 //
     hslx1->Write();
+    hsly1->Write();
     hxRsd_Y->Write();
-    hxRsdWth_Y->Write();
+    hu1Rsd_Y->Write();
+    hu2Rsd_Y->Write();
+    huRsdWth_Y->Write();
     hRdphiRsd_Y->Write();
+    hRdphi_x->Write();
+    hRdphi_u->Write();
+    hxRsd_ch->Write();
+    huRsd_ch->Write();
     hxPull_Y->Write();
-    hxPull_X2->Write();
-    hxPull_slx->Write();
-    hxPull_sly->Write();
-    hxPull_err->Write();
-    hxPull_dx->Write();
+    hxRsd_X2->Write();
+    hxRsd_slx->Write();
+    hxRsd_sly->Write();
+    hxRsd_err->Write();
+    hxRsd_dx->Write();
     hdx_err->Write();
 
     hErr1OrgX->Write();
@@ -244,15 +285,22 @@ public:
     TH1F *hNSeg1;
 //
     TH1F *hslx1;
+    TH1F *hsly1;
     TH2F *hxRsd_Y;
-    TH2F *hxRsdWth_Y;
+    TH2F *hu1Rsd_Y;
+    TH2F *hu2Rsd_Y;
+    TH2F *huRsdWth_Y;
     TH2F *hRdphiRsd_Y;
+    TH2F *hRdphi_x;
+    TH2F *hRdphi_u;
+    TH2F *hxRsd_ch;
+    TH2F *huRsd_ch;
     TH2F *hxPull_Y;
-    TH2F *hxPull_X2;
-    TH2F *hxPull_slx;
-    TH2F *hxPull_sly;
-    TH2F *hxPull_err;
-    TH2F *hxPull_dx;
+    TH2F *hxRsd_X2;
+    TH2F *hxRsd_slx;
+    TH2F *hxRsd_sly;
+    TH2F *hxRsd_err;
+    TH2F *hxRsd_dx;
     TH2F *hdx_err;
 
     TH1F *hErr1OrgX;
@@ -480,12 +528,12 @@ public:
     hxPull5 = new TH1F(N3+"_hxPull5", " x Pull in 5st layer", 101, -10.1, 10.1);
     hxPull6 = new TH1F(N3+"_hxPull6", " x Pull in 6st layer", 101, -10.1, 10.1);
 
-    hSKrsdy1 = new TH1F(N3+"_hSKrsdy1", " y residual in 1st layer", 101, -5.01, 5.01);
-    hSKrsdy2 = new TH1F(N3+"_hSKrsdy2", " y residual in 2st layer", 101, -5.01, 5.01);
-    hSKrsdy3 = new TH1F(N3+"_hSKrsdy3", " y residual in 3st layer", 101, -5.01, 5.01);
-    hSKrsdy4 = new TH1F(N3+"_hSKrsdy4", " y residual in 4st layer", 101, -5.01, 5.01);
-    hSKrsdy5 = new TH1F(N3+"_hSKrsdy5", " y residual in 5st layer", 101, -5.01, 5.01);
-    hSKrsdy6 = new TH1F(N3+"_hSKrsdy6", " y residual in 6st layer", 101, -5.01, 5.01);
+    hSKrsdy1 = new TH1F(N3+"_hSKrsdy1", " y residual in 1st layer", 101, -8.01, 8.01);
+    hSKrsdy2 = new TH1F(N3+"_hSKrsdy2", " y residual in 2st layer", 101, -8.01, 8.01);
+    hSKrsdy3 = new TH1F(N3+"_hSKrsdy3", " y residual in 3st layer", 101, -8.01, 8.01);
+    hSKrsdy4 = new TH1F(N3+"_hSKrsdy4", " y residual in 4st layer", 101, -8.01, 8.01);
+    hSKrsdy5 = new TH1F(N3+"_hSKrsdy5", " y residual in 5st layer", 101, -8.01, 8.01);
+    hSKrsdy6 = new TH1F(N3+"_hSKrsdy6", " y residual in 6st layer", 101, -8.01, 8.01);
 
     hrsd_Rdphi1 = new TH1F(N3+"_hrsd_Rdphi1", " Rdphi residual in 1st layer", 101, -0.3, 0.3);
     hrsd_Rdphi2 = new TH1F(N3+"_hrsd_Rdphi2", " Rdphi residual in 2st layer", 101, -0.3, 0.3);
@@ -494,6 +542,15 @@ public:
     hrsd_Rdphi5 = new TH1F(N3+"_hrsd_Rdphi5", " Rdphi residual in 5st layer", 101, -0.3, 0.3);
     hrsd_Rdphi6 = new TH1F(N3+"_hrsd_Rdphi6", " Rdphi residual in 6st layer", 101, -0.3, 0.3);
 
+    hSKrsdu1 = new TH1F(N3+"_hSKrsdu1", " x residual in 1st layer", 101, -0.3, 0.3);
+    hSKrsdu2 = new TH1F(N3+"_hSKrsdu2", " x residual in 2st layer", 101, -0.3, 0.3);
+    hSKrsdu3 = new TH1F(N3+"_hSKrsdu3", " x residual in 3st layer", 101, -0.3, 0.3);
+    hSKrsdu4 = new TH1F(N3+"_hSKrsdu4", " x residual in 4st layer", 101, -0.3, 0.3);
+    hSKrsdu5 = new TH1F(N3+"_hSKrsdu5", " x residual in 5st layer", 101, -0.3, 0.3);
+    hSKrsdu6 = new TH1F(N3+"_hSKrsdu6", " x residual in 6st layer", 101, -0.3, 0.3);
+
+    hRdfRsd_Y= new TH2F(N3+"_hRdfRsd_Y", "unbias Rdphi residual vs Y", 20, -160., 160., 240, -0.6, 0.6);
+    hRdfRsdWth_Y= new TH2F(N3+"_hRdfRsdWth_Y", "unbias Rdphi residual(Strip Width) vs Y", 20, -160., 160., 240, -0.6, 0.6);
   }
 
   H2DRecHit3(TString name_, TFile* file) {
@@ -534,6 +591,15 @@ public:
     hrsd_Rdphi5    = (TH1F *) file->Get(name+"_hrsd_Rdphi5");
     hrsd_Rdphi6    = (TH1F *) file->Get(name+"_hrsd_Rdphi6");
 
+    hSKrsdu1    = (TH1F *) file->Get(name+"_hSKrsdu1");
+    hSKrsdu2    = (TH1F *) file->Get(name+"_hSKrsdu2");
+    hSKrsdu3    = (TH1F *) file->Get(name+"_hSKrsdu3");
+    hSKrsdu4    = (TH1F *) file->Get(name+"_hSKrsdu4");
+    hSKrsdu5    = (TH1F *) file->Get(name+"_hSKrsdu5");
+    hSKrsdu6    = (TH1F *) file->Get(name+"_hSKrsdu6");
+
+    hRdfRsd_Y = (TH2F *) file->Get(name+"_hRdfRsd_Y");
+    hRdfRsdWth_Y = (TH2F *) file->Get(name+"_hRdfRsdWth_Y");
   } 
 
   /// Destructor
@@ -573,6 +639,16 @@ public:
     delete hrsd_Rdphi4;
     delete hrsd_Rdphi5;
     delete hrsd_Rdphi6;
+
+    delete hSKrsdu1;
+    delete hSKrsdu2;
+    delete hSKrsdu3;
+    delete hSKrsdu4;
+    delete hSKrsdu5;
+    delete hSKrsdu6;
+
+    delete hRdfRsd_Y;
+    delete hRdfRsdWth_Y;
 
   }
 
@@ -617,6 +693,22 @@ public:
        hrsd_Rdphi6->Fill(rsd_Rdphi6);
   }
 
+  void Fill_j(float SKrsdu1, float SKrsdu2,float SKrsdu3,float SKrsdu4,float SKrsdu5,float SKrsdu6) {
+
+       hSKrsdu1->Fill(SKrsdu1);
+       hSKrsdu2->Fill(SKrsdu2);
+       hSKrsdu3->Fill(SKrsdu3);
+       hSKrsdu4->Fill(SKrsdu4);
+       hSKrsdu5->Fill(SKrsdu5);
+       hSKrsdu6->Fill(SKrsdu6);
+
+  }
+
+  void Fill_l(float RdfRsd, float RdfRsdWth, float rht_y) {
+       hRdfRsd_Y->Fill(rht_y,RdfRsd);
+       hRdfRsdWth_Y->Fill(rht_y,RdfRsdWth);
+  }
+
   void Write() {
 
     hSKrsdx1->Write();
@@ -653,6 +745,16 @@ public:
     hrsd_Rdphi4->Write();
     hrsd_Rdphi5->Write();
     hrsd_Rdphi6->Write();
+
+    hSKrsdu1->Write();
+    hSKrsdu2->Write();
+    hSKrsdu3->Write();
+    hSKrsdu4->Write();
+    hSKrsdu5->Write();
+    hSKrsdu6->Write();
+  
+    hRdfRsd_Y->Write();
+    hRdfRsdWth_Y->Write();
 
   }
 
@@ -691,6 +793,16 @@ public:
     TH1F *hrsd_Rdphi5;
     TH1F *hrsd_Rdphi6;
 
+    TH1F *hSKrsdu1;
+    TH1F *hSKrsdu2;
+    TH1F *hSKrsdu3;
+    TH1F *hSKrsdu4;
+    TH1F *hSKrsdu5;
+    TH1F *hSKrsdu6;
+
+    TH2F *hRdfRsd_Y;
+    TH2F *hRdfRsdWth_Y;
+ 
   TString name;
 };
 #endif
