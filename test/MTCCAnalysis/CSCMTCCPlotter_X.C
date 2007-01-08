@@ -11,8 +11,8 @@ void CSCMTCCPlotter_X(int st, int rg, int cb){
 float  nsigmas = 2.;  // Number of sigmas around mean to fit gaussian.  It uses 2 iterations 
                    // i.e. range is = [mu - nsigmas * sigma, mu + nsigmas * sigma]
 
-TFile *file = TFile::Open("mtccplots_2625_TC_calib.root");
-FILE *dfile = fopen("run2526.txt","a");
+TFile *file = TFile::Open("mtccplots_tc.root");
+FILE *dfile = fopen("Run2526_Result.txt","a");
 
 TString suffixps = ".eps";
 
@@ -20,7 +20,7 @@ char det_str[9];
 char det_typ[6];
 double mean[6]={0.};
 double err[6]={0.};
-float ly[6]={1.,2.,3.,4.,5.,6.}
+float ly[6]={1.,2.,3.,4.,5.,6.};
 
  sprintf(det_str,"ME_%d_%d_%d",st,rg,cb);
  sprintf(det_typ,"ME_%d_%d",st,rg);
@@ -28,23 +28,23 @@ float ly[6]={1.,2.,3.,4.,5.,6.}
  TString segtype = det_typ;
 // Files for histogram output --> set suffixps to desired file type:  e.g. .eps, .jpg, ...
 
- TString plot01 = "rdphi_l1_"+segment+suffixps;
- TString plot02 = "rdphi_l2_"+segment+suffixps;
- TString plot03 = "rdphi_l3_"+segment+suffixps;
- TString plot04 = "rdphi_l4_"+segment+suffixps;
- TString plot05 = "rdphi_l5_"+segment+suffixps;
- TString plot06 = "rdphi_l6_"+segment+suffixps;
- TString plot07 = "pull_l1_"+segment+suffixps; 
- TString plot08 = "pull_l2_"+segment+suffixps; 
- TString plot09 = "pull_l3_"+segment+suffixps; 
- TString plot10 = "pull_l4_"+segment+suffixps; 
- TString plot11 = "pull_l5_"+segment+suffixps; 
- TString plot12 = "pull_l6_"+segment+suffixps;
+ TString plot01 = "rdphiw_l1_"+segment+suffixps;
+ TString plot02 = "rdphiw_l2_"+segment+suffixps;
+ TString plot03 = "rdphiw_l3_"+segment+suffixps;
+ TString plot04 = "rdphiw_l4_"+segment+suffixps;
+ TString plot05 = "rdphiw_l5_"+segment+suffixps;
+ TString plot06 = "rdphiw_l6_"+segment+suffixps;
+ TString plot07 = "pullX_l1_"+segment+suffixps; 
+ TString plot08 = "pullX_l2_"+segment+suffixps; 
+ TString plot09 = "pullX_l3_"+segment+suffixps; 
+ TString plot10 = "pullX_l4_"+segment+suffixps; 
+ TString plot11 = "pullX_l5_"+segment+suffixps; 
+ TString plot12 = "pullX_l6_"+segment+suffixps;
  TString plot13 = "nhits_"+segtype+suffixps;
  TString plot14 = "nsegments_"+segtype+suffixps;
- TString plot15 = "rdphi_Y_"+segtype+suffixps;
+ TString plot15 = "delta_Y_"+segtype+suffixps;
  TString plot16 = "chi2_"+segtype+suffixps;
- TString plot17 = "rdphi_all_"+segtype+suffixps;
+ TString plot17 = "delta_ly_"+segtype+suffixps;
   
 
 // ********************************************************************
@@ -70,9 +70,13 @@ float ly[6]={1.,2.,3.,4.,5.,6.}
     hfrsd_Y    = (TH2F *) file->Get(segtype+"_hRdphiRsd_Y");
 
     hX2        = (TH1F *) file->Get(segtype+"_hX2c6hits");
+//    hErr1OrgX  = (TH1F *) file->Get(segment+"_hErr1OrgX");
+//    hErr1VecX  = (TH1F *) file->Get(segment+"_hErr1VecX");
+//    hErr3OrgX  = (TH1F *) file->Get(segment+"_hErr3OrgX");
+//    hErr3VecX  = (TH1F *) file->Get(segment+"_hErr3VecX");
 
 // *****************************************************************
-// A) r dphi (in units of strip width)
+// 1) Local X position
 // *****************************************************************
 
 // 1) x rsd 1
@@ -81,7 +85,7 @@ float ly[6]={1.,2.,3.,4.,5.,6.}
  c1->SetFillColor(10);
  c1->SetFillColor(10);
  hSKrsdx1->SetTitle(segment);
- hSKrsdx1->GetXaxis()->SetTitle("r#Detla#phi_{1}/strip width");
+ hSKrsdx1->GetXaxis()->SetTitle("r#Delta#phi_{1}/strip width");
  hSKrsdx1->GetYaxis()->SetTitle(" ");
  hSKrsdx1->Fit("gaus");
  float par0 = gaus->GetParameter(0);
@@ -107,6 +111,8 @@ float ly[6]={1.,2.,3.,4.,5.,6.}
  mean[0] = gaus->GetParameter(1);
  err[0] = gaus->GetParameter(2);
  fprintf (dfile, "%d %d %d %f %f\n",st,rg,cb,mean[0],err[0]);
+
+// hResPhi->Draw();
  c1->Print(plot01);
 
 
@@ -116,7 +122,8 @@ float ly[6]={1.,2.,3.,4.,5.,6.}
  c1->SetFillColor(10);
  c1->SetFillColor(10);
  hSKrsdx2->SetTitle(segment);
- hSKrsdx2->GetXaxis()->SetTitle("r#Detla#phi_{2}/strip width");
+// hSKrsdx2->Draw();
+ hSKrsdx2->GetXaxis()->SetTitle("r#Delta#phi_{2}/strip width");
  hSKrsdx2->GetYaxis()->SetTitle(" ");
  hSKrsdx2->Fit("gaus");
  float par0 = gaus->GetParameter(0);
@@ -142,6 +149,7 @@ float ly[6]={1.,2.,3.,4.,5.,6.}
  mean[1] = gaus->GetParameter(1);
  err[1] = gaus->GetParameter(2);
  fprintf (dfile, "%d %d %d %f %f\n",st,rg,cb,mean[1],err[1]);
+// hResPhi->Draw();
  c1->Print(plot02);
 
 
@@ -151,7 +159,8 @@ float ly[6]={1.,2.,3.,4.,5.,6.}
  c1->SetFillColor(10);
  c1->SetFillColor(10);
  hSKrsdx3->SetTitle(segment);
- hSKrsdx3->GetXaxis()->SetTitle("r#Detla#phi_{3}/strip width");
+// hSKrsdx3->Draw();
+ hSKrsdx3->GetXaxis()->SetTitle("r#Delta#phi_{3}/strip width");
  hSKrsdx3->GetYaxis()->SetTitle(" ");
  hSKrsdx3->Fit("gaus");
  float par0 = gaus->GetParameter(0);
@@ -186,7 +195,8 @@ float ly[6]={1.,2.,3.,4.,5.,6.}
  c1->SetFillColor(10);
  c1->SetFillColor(10);
  hSKrsdx4->SetTitle(segment);
- hSKrsdx4->GetXaxis()->SetTitle("r#Detla#phi_{4}/strip width");
+// hSKrsdx4->Draw();
+ hSKrsdx4->GetXaxis()->SetTitle("r#Delta#phi_{4}/strip width");
  hSKrsdx4->GetYaxis()->SetTitle(" ");
  hSKrsdx4->Fit("gaus");
  float par0 = gaus->GetParameter(0);
@@ -221,7 +231,8 @@ float ly[6]={1.,2.,3.,4.,5.,6.}
  c1->SetFillColor(10);
  c1->SetFillColor(10);
  hSKrsdx5->SetTitle(segment);
- hSKrsdx5->GetXaxis()->SetTitle("r#Detla#phi_{5}/strip width");
+// hSKrsdx5->Draw();
+ hSKrsdx5->GetXaxis()->SetTitle("r#Delta#phi_{5}/strip width");
  hSKrsdx5->GetYaxis()->SetTitle(" ");
  hSKrsdx5->Fit("gaus");
  float par0 = gaus->GetParameter(0);
@@ -256,7 +267,8 @@ float ly[6]={1.,2.,3.,4.,5.,6.}
  c1->SetFillColor(10);
  c1->SetFillColor(10);
  hSKrsdx6->SetTitle(segment);
- hSKrsdx6->GetXaxis()->SetTitle("r#Detla#phi_{1}/strip width");
+// hSKrsdx6->Draw();
+ hSKrsdx6->GetXaxis()->SetTitle("r#Delta#phi_{6}/strip width");
  hSKrsdx6->GetYaxis()->SetTitle(" ");
  hSKrsdx6->Fit("gaus");
  float par0 = gaus->GetParameter(0);
@@ -282,15 +294,15 @@ float ly[6]={1.,2.,3.,4.,5.,6.}
  mean[5] = gaus->GetParameter(1);
  err[5] = gaus->GetParameter(2);
  fprintf (dfile, "%d %d %d %f %f\n",st,rg,cb,mean[5],err[5]);
+// hResPhi->Draw();
  c1->Print(plot06);
 
 
- //  ****************************************************
- //  B) Pulls in local x
- //  ****************************************************
+// *************************************
+// Pulls in local x
+// *************************************
 
-
-// 1)
+// 7) x pull 7
  gStyle->SetOptStat(kFALSE);  
  TCanvas *c1 = new TCanvas("c1","");
  c1->SetFillColor(10);
@@ -322,7 +334,7 @@ float ly[6]={1.,2.,3.,4.,5.,6.}
  c1->Print(plot07);
 
 
-// 2)
+// 8) x Pull 8
  gStyle->SetOptStat(kFALSE);  
  TCanvas *c1 = new TCanvas("c1","");
  c1->SetFillColor(10);
@@ -354,7 +366,7 @@ float ly[6]={1.,2.,3.,4.,5.,6.}
  c1->Print(plot08);
 
 
-// 3)
+// 9) x Pull 9
  gStyle->SetOptStat(kFALSE);  
  TCanvas *c1 = new TCanvas("c1","");
  c1->SetFillColor(10);
@@ -386,7 +398,7 @@ float ly[6]={1.,2.,3.,4.,5.,6.}
  c1->Print(plot09);
 
 
-// 4)
+// 10) x Pull 10
  gStyle->SetOptStat(kFALSE);  
  TCanvas *c1 = new TCanvas("c1","");
  c1->SetFillColor(10);
@@ -418,7 +430,7 @@ float ly[6]={1.,2.,3.,4.,5.,6.}
  c1->Print(plot10);
 
 
-// 5)
+// 11) x Pull 11
  gStyle->SetOptStat(kFALSE);  
  TCanvas *c1 = new TCanvas("c1","");
  c1->SetFillColor(10);
@@ -450,7 +462,7 @@ float ly[6]={1.,2.,3.,4.,5.,6.}
  c1->Print(plot11);
 
 
-// 6) 
+// 12) x Pull 12
  gStyle->SetOptStat(kFALSE);  
  TCanvas *c1 = new TCanvas("c1","");
  c1->SetFillColor(10);
@@ -480,10 +492,6 @@ float ly[6]={1.,2.,3.,4.,5.,6.}
  hi = par1 + nsigmas * par2;
  hxPull6->Fit("gaus","R","",low,hi);
  c1->Print(plot12);
-
- // **********************************************
- // Segment stats
- // **********************************************
 
 // 13) Number of Hits/ segment
  gStyle->SetOptStat(kTRUE);
@@ -515,7 +523,7 @@ float ly[6]={1.,2.,3.,4.,5.,6.}
  hfrsd_Y->SetTitle(segtype);
  hfrsd_Y->Draw();
  hfrsd_Y->GetXaxis()->SetTitle("Y_{local} (cm) ");
- hfrsd_Y->GetYaxis()->SetTitle("r#Delta#phi/strip width ");
+ hfrsd_Y->GetYaxis()->SetTitle("Rdphi Residual  (cm) ");
  c1->Print(plot15);
 
 // 16) chi^2 for 6 hits  Segments 
@@ -529,20 +537,6 @@ float ly[6]={1.,2.,3.,4.,5.,6.}
  hX2->GetYaxis()->SetTitle(" ");   
  c1->Print(plot16);
 
-
- gStyle->SetOptStat(kFALSE);
- TCanvas *c1 = new TCanvas("c1","");
- c1->SetFillColor(10);
- c1->SetFillColor(10);
- 
- Rdf_ly = new TGraphErrors(6,ly,err);
- Rdf_ly->SetMarkerColor(4);
- Rdf_ly->SetMarkerStyle(21);
- Rdf_ly->GetXaxis()->SetTitle(" layer # ");
- Rdf_ly->GetYaxis()->SetTitle("r#Delta#phi/strip width");
-
- Rdf_ly->Draw("AP");
- c1->Print(plot17);
 
  fclose(dfile);
  gROOT->ProcessLine(".q");
