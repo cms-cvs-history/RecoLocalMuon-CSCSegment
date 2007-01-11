@@ -67,6 +67,7 @@ private:
   int   minnhits;
   float minCosTheta12;
   float maxDphi;
+  float maxDR;
   std::string rootFileName;
   std::string cscSegmentLabel;
   std::string recHitLabel;

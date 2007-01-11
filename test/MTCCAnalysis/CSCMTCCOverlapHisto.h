@@ -25,12 +25,14 @@ class Histos {
     name=N;
     
     hDphi1      = new TH1F(N+"_hDphi1", N, 51, -0.051, 0.051);
-    hrDphi1     = new TH1F(N+"_hrDphi1", N, 51, -10.2, 10.2);
-    hDR1        = new TH1F(N+"_hDR1", N, 51, -10.2, 10.2);
+    hlocalDx1   = new TH1F(N+"_hlocalDx1", N, 51, -10.2, 10.2);
+    hlocalDy1   = new TH1F(N+"_hlocalDy1", N, 51, -20.4, 20.4);
+    hDR1        = new TH1F(N+"_hDR1", N, 51, -20.4, 20.4);
     hDphi2      = new TH1F(N+"_hDphi2", N, 51, -0.051, 0.051);
-    hrDphi2     = new TH1F(N+"_hrDphi2", N, 51, -10.2, 10.2);
-    hDR2        = new TH1F(N+"_hDR2", N, 51, -10.2, 10.2);
-    hTheta12 = new TH1F(N+"_hTheta12", N, 51, -0.01, 0.5);
+    hlocalDx2   = new TH1F(N+"_hlocalDx2", N, 51, -10.2, 10.2);
+    hlocalDy2   = new TH1F(N+"_hlocalDy2", N, 51, -20.4, 20.4);
+    hDR2        = new TH1F(N+"_hDR2", N, 51, -20.4, 20.4);
+    hTheta12 = new TH1F(N+"_hTheta12", N, 50, 0., 0.5);
   }
 
    
@@ -38,37 +40,43 @@ class Histos {
   Histos(TString name_, TFile* file) {
     name=name_;
 
-    hDphi1  = (TH1F *) file->Get(name+"_hDphi1");
-    hrDphi1 = (TH1F *) file->Get(name+"_hrDphi1");  
-    hDR1    = (TH1F *) file->Get(name+"_hDR1");  
-    hDphi2  = (TH1F *) file->Get(name+"_hDphi2");  
-    hrDphi2 = (TH1F *) file->Get(name+"_hrDphi2");
-    hDR2    = (TH1F *) file->Get(name+"_hDR2");  
-    hTheta12 = (TH1F *) file->Get(name+"_hTheta12");     
+    hDphi1    = (TH1F *) file->Get(name+"_hDphi1");
+    hlocalDx1 = (TH1F *) file->Get(name+"_hlocalDx1");  
+    hlocalDy1 = (TH1F *) file->Get(name+"_hlocalDy1");  
+    hDR1      = (TH1F *) file->Get(name+"_hDR1");  
+    hDphi2    = (TH1F *) file->Get(name+"_hDphi2");  
+    hlocalDx2 = (TH1F *) file->Get(name+"_hlocalDx2");  
+    hlocalDy2 = (TH1F *) file->Get(name+"_hlocalDy2");  
+    hDR2      = (TH1F *) file->Get(name+"_hDR2");  
+    hTheta12  = (TH1F *) file->Get(name+"_hTheta12");     
   }
 
   /// Destructor
   virtual ~Histos() {
-    delete hDphi1;          
-    delete hrDphi1;
+    delete hDphi1;
+    delete hlocalDx1;
+    delete hlocalDy1;
     delete hDR1;
     delete hDphi2;  
-    delete hrDphi2;
+    delete hlocalDx2;
+    delete hlocalDy2;
     delete hDR2;    
     delete hTheta12;    
   }	       
 
 
   /// Fill all the histos
-  void Fill(float dphi1, float rDphi1, float dR1, 
-	    float dphi2, float rDphi2, float dR2, float costheta12) {
+  void Fill(float dphi1, float dx1, float dy1, float dR1, 
+	    float dphi2, float dx2, float dy2, float dR2, float costheta12) {
     
     float theta12 = acos(costheta12); 
     hDphi1->Fill(dphi1);   
-    hrDphi1->Fill(rDphi1); 
+    hlocalDx1->Fill(dx1); 
+    hlocalDy1->Fill(dy1); 
     hDR1->Fill(dR1);
     hDphi2->Fill(dphi2);
-    hrDphi2->Fill(rDphi2);
+    hlocalDx1->Fill(dx2); 
+    hlocalDy1->Fill(dy2); 
     hDR2->Fill(dR2);
     hTheta12->Fill(theta12);
   }
@@ -77,19 +85,23 @@ class Histos {
   void Write() {
 
    hDphi1->Write();        
-   hrDphi1->Write();    
+   hlocalDx1->Write();    
+   hlocalDy1->Write();    
    hDR1->Write();
    hDphi2->Write();     
-   hrDphi2->Write();
+   hlocalDx2->Write();    
+   hlocalDy2->Write();    
    hDR2->Write();
    hTheta12->Write();
   }
 
   TH1F *hDphi1; 
-  TH1F *hrDphi1;
+  TH1F *hlocalDx1;
+  TH1F *hlocalDy1;
   TH1F *hDR1;
   TH1F *hDphi2; 
-  TH1F *hrDphi2;
+  TH1F *hlocalDx2;
+  TH1F *hlocalDy2;
   TH1F *hDR2;
   TH1F *hTheta12;
   

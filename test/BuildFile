@@ -13,3 +13,8 @@
    <flags SEAL_PLUGIN_NAME="CSCMTCCAnalysis">
 </library>
 
+<library file=MTCCAnalysis/CSCMTCCOverlap.cc name=CSCMTCCOverlap>
+   <flags SEAL_PLUGIN_NAME="CSCMTCCOverlap">
+</library>
+
+
