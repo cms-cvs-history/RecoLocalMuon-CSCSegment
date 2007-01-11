@@ -75,8 +75,8 @@ class Histos {
     hlocalDy1->Fill(dy1); 
     hDR1->Fill(dR1);
     hDphi2->Fill(dphi2);
-    hlocalDx1->Fill(dx2); 
-    hlocalDy1->Fill(dy2); 
+    hlocalDx2->Fill(dx2); 
+    hlocalDy2->Fill(dy2); 
     hDR2->Fill(dR2);
     hTheta12->Fill(theta12);
   }
