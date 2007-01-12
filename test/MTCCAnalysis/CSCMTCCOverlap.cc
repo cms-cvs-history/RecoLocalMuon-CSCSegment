@@ -115,7 +115,7 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
     
     CSCDetId id1 = (CSCDetId)(*segIt_1).cscDetId();
     if (id1.station() != 1 || id1.ring()    != 2 ) continue;  // Look at ME-1/2 chambers only
-    if (id1.chamber() < 26 || id1.chamber() > 30 ) continue;
+    if (id1.chamber() < 26 || id1.chamber() > 30 ) continue;  // Look at chambers with calibrations: 27-31
 
     // Second loop over segment to find matching pair
     for (CSCSegmentCollection::const_iterator segIt_2 = cscSegments->begin(); segIt_2 != cscSegments->end(); segIt_2++) {
@@ -177,14 +177,44 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
 
 
       // Compute extrapolated position from 1
-      GlobalPoint Gxyz2prime(fabs(Gvec1.x()/Gvec1.z()) * deltaZ + Gxyz1.x(), 
-			     fabs(Gvec1.y()/Gvec1.z()) * deltaZ + Gxyz1.y(), 
-			     Gxyz2.z());
+
+      // Note that there is confusion about the direction of the vector, so try either sign and
+      // test which hypothesis (+/-) is better
+      GlobalPoint Gxyz2prime; 
+      GlobalPoint Gxyz2primeA(fabs(Gvec1.x()/Gvec1.z()) * deltaZ + Gxyz1.x(), 
+		              fabs(Gvec1.y()/Gvec1.z()) * deltaZ + Gxyz1.y(), 
+		              Gxyz2.z());
+
+      GlobalPoint Gxyz2primeB(-fabs(Gvec1.x()/Gvec1.z()) * deltaZ + Gxyz1.x(), 
+			      -fabs(Gvec1.y()/Gvec1.z()) * deltaZ + Gxyz1.y(), 
+			      Gxyz2.z());
+
+      GlobalVector R2A = Gxyz2 - Gxyz2primeA;
+      float dR2A       = R2A.mag();
+      GlobalVector R2B = Gxyz2 - Gxyz2primeB;
+      float dR2B       = R2B.mag();
+
+      Gxyz2prime = Gxyz2primeA;
+      if (dR2B < dR2A) Gxyz2prime = Gxyz2primeB;
 
       // Compute extrapolated position from 2
-      GlobalPoint Gxyz1prime(fabs(Gvec2.x()/Gvec2.z()) * (-deltaZ) + Gxyz2.x(),
-			     fabs(Gvec2.y()/Gvec2.z()) * (-deltaZ) + Gxyz2.y(),
-			     Gxyz1.z());
+      GlobalPoint Gxyz1prime; 
+      GlobalPoint Gxyz1primeA(fabs(Gvec2.x()/Gvec2.z()) * deltaZ + Gxyz2.x(),
+			      fabs(Gvec2.y()/Gvec2.z()) * deltaZ + Gxyz2.y(),
+			      Gxyz1.z());
+
+      GlobalPoint Gxyz1primeB(-fabs(Gvec2.x()/Gvec2.z()) * deltaZ + Gxyz2.x(),
+			      -fabs(Gvec2.y()/Gvec2.z()) * deltaZ + Gxyz2.y(),
+			      Gxyz1.z());
+
+      GlobalVector R1A = Gxyz1 - Gxyz1primeA;
+      float dR1A       = R1A.mag();
+      GlobalVector R1B = Gxyz1 - Gxyz1primeB;
+      float dR1B       = R1B.mag();
+
+      Gxyz1prime = Gxyz1primeA;
+      if (dR1B < dR1A) Gxyz1prime = Gxyz1primeB;
+
 
       // Transform the above into local coordinates of chambers:
       LocalPoint xyz1prime = ch1->toLocal( Gxyz1prime );
