@@ -96,7 +96,7 @@ class Histos {
     hDphi12->Fill(dphi1);   
     hlocalDx12->Fill(dx1); 
     hlocalDy12->Fill(dy1); 
-    hDR12->Fill(-dR2);
+    hDR12->Fill(dR1);
     hDphi12->Fill(-dphi2);   
     hlocalDx12->Fill(-dx2); 
     hlocalDy12->Fill(-dy2); 

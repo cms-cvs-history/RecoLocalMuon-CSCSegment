@@ -233,7 +233,7 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
       GlobalVector R2 = Gxyz2 - Gxyz2prime;
       float dR2       = R2.mag(); 
       float dx2       = xyz2.x() - xyz2prime.x();
-      float dy2       = xyz2.x() - xyz2prime.x();
+      float dy2       = xyz2.y() - xyz2prime.y();
 
       // Find angular difference between two segments.
       // Use dot product:  cos(theta_12) = v1 . v2 / [ |v1|*|v2| ]
