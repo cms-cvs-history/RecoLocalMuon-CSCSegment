@@ -5,11 +5,11 @@
 
 block DF_ME1234 = {
     untracked bool CSCSegmentDebug          = false
-    untracked double nSigmaFromSegment      = 30.
+    untracked double nSigmaFromSegment      = 50.
     untracked int32 minHitsPerSegment       = 3
     untracked int32 CSCSegmentPerChamberMax = 2
     untracked double chi2ndfProbMin         = 1.e-8     # unused 
-    untracked double chi2Max                = 60.       # unused
+    untracked double chi2Max                = 1000.       
     untracked int32 minLayersApart          = 1
 }
 
@@ -19,7 +19,7 @@ block DF_ME1A = {
     untracked int32 minHitsPerSegment       = 3
     untracked int32 CSCSegmentPerChamberMax = 2
     untracked double chi2ndfProbMin         = 1.e-4     # unused
-    untracked double chi2Max                = 60.       # unused	
+    untracked double chi2Max                = 1000.       
     untracked int32 minLayersApart          = 1
 }
 
