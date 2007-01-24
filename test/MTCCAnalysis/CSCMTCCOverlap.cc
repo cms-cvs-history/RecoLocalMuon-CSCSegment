@@ -52,6 +52,7 @@ CSCMTCCOverlap::CSCMTCCOverlap(const ParameterSet& pset) {
   maxdxdz             = pset.getUntrackedParameter<double>("maxSlopedxdz");
   maxdydz             = pset.getUntrackedParameter<double>("maxSlopedydz");
   minnhits            = pset.getUntrackedParameter<int>("MinNhits");
+  minnhits2           = pset.getUntrackedParameter<int>("MinNhits2");
   maxDphi             = pset.getUntrackedParameter<double>("maxDphi");
   maxDR               = pset.getUntrackedParameter<double>("maxDR");
   minCosTheta12       = pset.getUntrackedParameter<double>("minCosTheta12");
@@ -75,7 +76,34 @@ CSCMTCCOverlap::CSCMTCCOverlap(const ParameterSet& pset) {
 // Destructor
 CSCMTCCOverlap::~CSCMTCCOverlap(){
 
+  hlayeff = new TH1F("hlayeff", "rechit eff per layer", layMap.size()*2 + 2, 0, layMap.size()*2 + 2); 
+  hsegeff = new TH1F("hsegeff", "6-hit segment eff", chaMap.size()*2 + 2, 0, chaMap.size()*2 + 2); 
+
+  int ibin = 0;
+  cout << "Rechit efficiency for building hit on segment/layer" << endl;        
+  for (map<int,int>::const_iterator it = layMap.begin(); it != layMap.end(); it++) {
+    ibin++;
+    float eff = (float)it->second/(float)refMap2[it->first]; 
+    hlayeff->SetBinContent(ibin*2, eff);
+//    hlayeff->GetXaxis()->SetBinLabel(ibin*2, string(it->first));
+    cout << "Layer" << it->first << "  : " << it->second << " " << refMap2[it->first] 
+                                         << "  "       << eff << endl;
+  }
+  ibin = 0;
+  cout << "Reco efficiency for building 6-hit segment" << endl;        
+  for (map<int,int>::const_iterator it = chaMap.begin(); it != chaMap.end(); it++) {
+    ibin++;
+    float eff = (float)it->second/(float)refMap[it->first]; 
+    hsegeff->SetBinContent(ibin*2, eff);
+//    hsegeff->GetXaxis()->SetBinLabel(ibin*2, string(it->first));
+    cout << "Chamber" << it->first << ": " << it->second << " " << refMap[it->first] 
+                                           << "  "       << eff << endl;
+  }
+
+
   theFile->cd();
+  hlayeff->Write();
+  hsegeff->Write();
   h1->Write();
   h2->Write();
   h3->Write();
@@ -117,12 +145,23 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
     if (id1.station() != 1 || id1.ring()    != 2 ) continue;  // Look at ME-1/2 chambers only
     if (id1.chamber() < 26 || id1.chamber() > 30 ) continue;  // Look at chambers with calibrations: 27-31
 
+
     // Second loop over segment to find matching pair
     for (CSCSegmentCollection::const_iterator segIt_2 = cscSegments->begin(); segIt_2 != cscSegments->end(); segIt_2++) {
    
-      if ((*segIt_2).nRecHits() < minnhits) continue;
+      if ((*segIt_2).nRecHits() < minnhits2) continue;
 
       CSCDetId id2 = (CSCDetId)(*segIt_2).cscDetId();
+
+
+      // Test that have only 1 segment in this chamber  (to avoid combinatorics)
+      int NsegPerChamber = 0;
+      for (CSCSegmentCollection::const_iterator segIt_3 = cscSegments->begin(); segIt_3 != cscSegments->end(); segIt_3++) {
+        CSCDetId id3 = (CSCDetId)(*segIt_3).cscDetId();
+        if (id3 == id2) NsegPerChamber++;
+      }     
+      if (NsegPerChamber > 1) continue;
+     
       
       // Check that have chambers in same station/ring
       if (id1.station()   == id2.station() &&
@@ -134,11 +173,11 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
       }
 
 
-      // Have potentially segments within overlapping region.  
+      // Have potentially segments within overlapping region...  
 
       if (debug) cout << "Found potential track pair overlapping" << endl;
 
-      // Extract properties of segments to find out...
+      // ...extract properties of segments to find out
 
       // First segment properties
       LocalVector vec1 = (*segIt_1).localDirection();
@@ -171,10 +210,8 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
       GlobalPoint  Gxyz2 = ch2->toGlobal( xyz2 );
       GlobalVector Gvec2 = ch2->toGlobal( vec2 );
 
-
       // Spacing between two origins in global coordinates:
       float deltaZ = Gxyz2.z() - Gxyz1.z();
-
 
       // Compute extrapolated position from 1
 
@@ -252,22 +289,72 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
       if (costheta12 < minCosTheta12) continue;
       if (dR1 > maxDR || dR2 > maxDR ) continue;
 
+
+      // Now, look at 6-hit segment efficiency for 2nd segment    
+      refMap[id2.chamber()]++;    // Reference (denominator)
+      if ((*segIt_2).nRecHits() == 6) chaMap[id2.chamber()]++;  // Count # of 6 hit segment
+
+      // and rechit efficiency per layer for 2nd segment    
+      for (int k = 1; k < 7; k++) refMap2[k]++;  // Reference (denominator)
+
+      const std::vector<CSCRecHit2D>& rh = (*segIt_1).specificRecHits();
+      for (std::vector<CSCRecHit2D>::const_iterator rhIter = rh.begin(); rhIter!=rh.end(); ++rhIter) { 
+        CSCDetId idrh = (CSCDetId)(*rhIter).cscDetId();
+        layMap[idrh.layer()]++;
+      }
+
+     
+      // Generate histograms
       Histos *histo = 0;
-      
       if (id1.chamber() == 27) histo = h1;
       if (id1.chamber() == 28) histo = h2;
       if (id1.chamber() == 29) histo = h3;
       if (id1.chamber() == 30) histo = h4;
-
       if (debug) cout << "Have match and will fill histograms !" << endl;	
 
       histo->Fill(dphi1, dx1, dy1, dR1, dphi2, dx2, dy2, dR2, costheta12);
       Noverlaps++;
     }
   }
-
 }
 
 
+
+bool CSCMTCCOverlap::isSegInFiducial( const CSCChamber* chamber, LocalPoint lp, LocalVector vec, float ChamberThickness ) { 
+
+  // Margin around dectector to ensure hit is well within fiducial volume
+  float marginAtEdges = 2.; 
+
+  float dz = ChamberThickness/2.;
+
+  const CSCLayer* layer1 = chamber->layer(1);
+  const CSCLayerGeometry* layergeom = layer1->geometry();
+  float apothem     = layergeom->length()/2.;
+  float widthTop    = layergeom->width()/2.;                     // Note these are half-widths
+  float widthBottom = layergeom->widthAtHalfLength() - widthTop; // t+b=2w
+  float slopeSide   = (widthTop - widthBottom) / (2. * apothem);
+  float interSide   = slopeSide * layergeom->widthAtHalfLength()/2.;
+  interSide = fabs(interSide);
+
+  float dxdz = vec.x()/vec.z();
+  float dydz = vec.y()/vec.z();
+   
+  float XatZ_pos = dxdz * dz + lp.x();
+  float YatZ_pos = dydz * dz + lp.y();
+  float XatZ_neg =-dxdz * dz + lp.x();
+  float YatZ_neg =-dydz * dz + lp.y();
+
+  // First look at top / bottom 
+  if (fabs(YatZ_neg) > apothem -marginAtEdges || fabs(YatZ_pos) > apothem - marginAtEdges) return false;
+
+  // Now look at sides and use left-right chamber symmetry to ease test
+  float maxX_pos = fabs((YatZ_pos + interSide)/slopeSide) - marginAtEdges;
+  float maxX_neg = fabs((YatZ_neg + interSide)/slopeSide) - marginAtEdges;
+
+  if (fabs(XatZ_pos) > maxX_pos || fabs(XatZ_neg) > maxX_neg) return false;
+
+  return true;
+
+}
 
 DEFINE_FWK_MODULE(CSCMTCCOverlap)

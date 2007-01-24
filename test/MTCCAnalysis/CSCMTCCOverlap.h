@@ -15,6 +15,9 @@
 #include "DataFormats/MuonDetId/interface/CSCDetId.h"
 #include <DataFormats/CSCRecHit/interface/CSCRecHit2D.h>
 
+#include "Geometry/Vector/interface/LocalPoint.h"
+#include "Geometry/Vector/interface/LocalVector.h"
+
 #include "Geometry/CSCGeometry/interface/CSCGeometry.h"
 #include <Geometry/CSCGeometry/interface/CSCChamber.h>
 #include <Geometry/CSCGeometry/interface/CSCLayer.h>
@@ -24,6 +27,9 @@
 #include <vector>
 #include <map>
 #include <string>
+
+#include "TFile.h"
+#include "TH1F.h"
 
 namespace edm {
   class ParameterSet;
@@ -48,12 +54,17 @@ public:
   void analyze(const edm::Event & event, const edm::EventSetup& eventSetup);
 
 
+  bool isSegInFiducial( const CSCChamber* chamber, LocalPoint lp, LocalVector vec, float ChamberThickness );
+
+
 private: 
 
   // Counter
   int Noverlaps;
 
-  // Histograms;
+  // Histograms stuff;
+  TFile *theFile;
+  TH1F *hlayeff, *hsegeff;
   Histos* h1;
   Histos* h2;
   Histos* h3;
@@ -65,6 +76,7 @@ private:
   float maxdxdz;
   float maxdydz;
   int   minnhits;
+  int   minnhits2;
   float minCosTheta12;
   float maxDphi;
   float maxDR;
@@ -72,7 +84,10 @@ private:
   std::string cscSegmentLabel;
   std::string recHitLabel;
 
-  TFile *theFile;
+  std::map<int, int> refMap;
+  std::map<int, int> refMap2;
+  std::map<int, int> layMap;
+  std::map<int, int> chaMap;
 
 };
 
