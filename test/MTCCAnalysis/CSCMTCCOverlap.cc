@@ -68,6 +68,12 @@ CSCMTCCOverlap::CSCMTCCOverlap(const ParameterSet& pset) {
   h2  = new Histos("ME12_28_29");
   h3  = new Histos("ME12_29_30");
   h4  = new Histos("ME12_30_31"); 
+
+
+  segCount = 0;
+  segCount5 = 0;
+  OversegCount = 0;
+  OversegCount5 = 0;
   
   Noverlaps = 0;
 }
@@ -76,45 +82,82 @@ CSCMTCCOverlap::CSCMTCCOverlap(const ParameterSet& pset) {
 // Destructor
 CSCMTCCOverlap::~CSCMTCCOverlap(){
 
-  hlayeff = new TH1F("hlayeff", "rechit eff per layer", layMap.size()*2 + 2, 0, layMap.size()*2 + 2); 
-  hsegeff = new TH1F("hsegeff", "6-hit segment eff", chaMap.size()*2 + 2, 0, chaMap.size()*2 + 2); 
+  hsegeff = new TH1F("hsegeff", "6-hit segment eff", refMap.size()*2 + 2, 0, refMap.size()*2 + 2); 
 
   int ibin = 0;
+
+  // Non-overlapping chambers:  raw rechit efficiency
+
   cout << "Rechit efficiency for building hit on segment/layer" << endl;        
   for (map<int,int>::const_iterator it = layMap.begin(); it != layMap.end(); it++) {
-    ibin++;
-    float eff = (float)it->second/(float)refMap2[it->first]; 
+    ibin++;    
+    float eff = 0.;
+    if (segCount >0) eff = 1.* (float)it->second / segCount; 
     hlayeff->SetBinContent(ibin*2, eff);
-//    hlayeff->GetXaxis()->SetBinLabel(ibin*2, string(it->first));
-    cout << "Layer" << it->first << "  : " << it->second << " " << refMap2[it->first] 
-                                         << "  "       << eff << endl;
+    //    hlayeff->GetXaxis()->SetBinLabel(ibin*2, (string)it->first);
+    cout << "Layer" << it->first << "  : " << it->second << " " << segCount 
+                                           << "  "       << eff << endl;
   }
   ibin = 0;
-  cout << "Reco efficiency for building 6-hit segment" << endl;        
-  for (map<int,int>::const_iterator it = chaMap.begin(); it != chaMap.end(); it++) {
+  cout << "Rechit efficiency for building hit from 5 hit segment" << endl;
+  for (map<int,int>::const_iterator it = layMap5.begin(); it != layMap5.end(); it++) {
     ibin++;
-    float eff = (float)it->second/(float)refMap[it->first]; 
-    hsegeff->SetBinContent(ibin*2, eff);
-//    hsegeff->GetXaxis()->SetBinLabel(ibin*2, string(it->first));
-    cout << "Chamber" << it->first << ": " << it->second << " " << refMap[it->first] 
+    float eff = 0.;
+    if (segCount5 >0) eff = 1.* (float)it->second / segCount5;
+    cout << "Layer" << it->first << "  : " << it->second << " " << segCount5
                                            << "  "       << eff << endl;
   }
 
+  cout << " " << endl;
+  cout << "*** Results from overlapping chambers " << endl;
+  cout << " " << endl;
 
+  // Overlapping chambers:  hit + segment reconstruction efficiency
+
+  ibin = 0;
+  cout << "Rechit efficiency for building hit on segment/layer" << endl;        
+  for (map<int,int>::const_iterator it = OverlayMap.begin(); it != OverlayMap.end(); it++) {
+    ibin++;
+    float eff = 0.;
+    if (OversegCount >0) eff = 1.* (float)it->second / OversegCount; 
+    hOverlayeff->SetBinContent(ibin*2, eff);
+    cout << "Layer" << it->first << "  : " << it->second << " " << OversegCount
+	 << "  "       << eff << endl;
+  }
+  ibin = 0;
+  cout << "Rechit efficiency for building hit on 5-hit segment/layer" << endl;
+  for (map<int,int>::const_iterator it = OverlayMap5.begin(); it != OverlayMap5.end(); it++) {
+    ibin++;
+    float eff = 0.;
+    if (OversegCount5 >0) eff = 1.* (float)it->second / OversegCount5;
+    cout << "Layer" << it->first << "  : " << it->second << " " << OversegCount5
+	 << "  "       << eff << endl;
+  }
+  ibin = 0;
+  cout << "Reco efficiency for building 6-hit segment" << endl;        
+  for (map<int,int>::const_iterator it = segMap.begin(); it != segMap.end(); it++) {
+    ibin++;
+    float eff = (float)it->second/(float)refMap[it->first]; 
+    hsegeff->SetBinContent(ibin*2, eff);
+    cout << "Chamber" << it->first << ": " << it->second << " " << refMap[it->first] 
+	 << "  "       << eff << endl;
+  }
+  
+  
   theFile->cd();
-  hlayeff->Write();
   hsegeff->Write();
   h1->Write();
   h2->Write();
   h3->Write();
   h4->Write();
-
+  
   theFile->Close();
   if (debug) cout << "[CSCMTCCOverlap] Finished writing histograms to file" << endl;
-
+  
   cout << "[CSCMTCCOverlap] Number of segment pairs for overlapping region is " << Noverlaps << endl;
-
+  
 }
+
 
 
 // The main
@@ -123,45 +166,77 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
   // Get the CSC Geometry :
   ESHandle<CSCGeometry> cscGeom;
   eventSetup.get<MuonGeometryRecord>().get(cscGeom);
- 
+  
   // Get the Segments collection :
   Handle<CSCSegmentCollection> cscSegments; 
   event.getByLabel(cscSegmentLabel, cscSegments);  
   if (debug) cout << " " << endl;
   if (debug) cout << "   #cscSegments: " << cscSegments->size() << endl;
-
+  
   // Get the RecHits collection :
   Handle<CSCRecHit2DCollection> recHits; 
   event.getByLabel(recHitLabel, recHits);  
   if (debug) cout << "   #RecHits: " << recHits->size() << endl;
   if (debug) cout << " " << endl;
-
+  
   // First loop over segment
   for (CSCSegmentCollection::const_iterator segIt_1 = cscSegments->begin(); segIt_1 != cscSegments->end(); segIt_1++) {
-
-    if ((*segIt_1).nRecHits() < minnhits) continue;
     
     CSCDetId id1 = (CSCDetId)(*segIt_1).cscDetId();
+    
+    // Test that have only 1 segment in this chamber  (to avoid combinatorics)
+    int NsegPerChamber = 0;
+    for (CSCSegmentCollection::const_iterator segIt_3 = cscSegments->begin(); segIt_3 != cscSegments->end(); segIt_3++)
+      if ((CSCDetId)(*segIt_3).cscDetId() == id1) NsegPerChamber++;
+    if (NsegPerChamber > 1) continue; 
+    
+    
+    // Look at hit reconstruction efficiency:
+    
+    // denominators
+    segCount++;
+    if ((*segIt_1).nRecHits()==5) segCount5++;
+    
+    for (CSCRecHit2DCollection::const_iterator recIt = recHits->begin(); recIt != recHits->end(); recIt++) {
+      
+      // Find chamber with rechits in CSC 
+      CSCDetId idrec = (CSCDetId)(*recIt).cscDetId();
+      
+      int old_layer = 0;
+      if ((idrec.endcap() == id1.endcap()) &&
+          (idrec.ring() == id1.ring()) &&
+          (idrec.station() == id1.station()) &&
+          (idrec.chamber() == id1.chamber())) {
+        if (idrec.layer() != old_layer) {
+          layMap[idrec.layer()]++;
+          if ((*segIt_1).nRecHits()==5) layMap5[idrec.layer()]++;
+        }
+        old_layer = idrec.layer();
+      }
+    }
+    
+    
+    // Further constraints for Overlap studies:
+    
+    if ((*segIt_1).nRecHits() < minnhits) continue;    
     if (id1.station() != 1 || id1.ring()    != 2 ) continue;  // Look at ME-1/2 chambers only
     if (id1.chamber() < 26 || id1.chamber() > 30 ) continue;  // Look at chambers with calibrations: 27-31
-
-
+    
+    
     // Second loop over segment to find matching pair
     for (CSCSegmentCollection::const_iterator segIt_2 = cscSegments->begin(); segIt_2 != cscSegments->end(); segIt_2++) {
-   
+      
       if ((*segIt_2).nRecHits() < minnhits2) continue;
-
+      
       CSCDetId id2 = (CSCDetId)(*segIt_2).cscDetId();
-
-
+      
+      
       // Test that have only 1 segment in this chamber  (to avoid combinatorics)
-      int NsegPerChamber = 0;
-      for (CSCSegmentCollection::const_iterator segIt_3 = cscSegments->begin(); segIt_3 != cscSegments->end(); segIt_3++) {
-        CSCDetId id3 = (CSCDetId)(*segIt_3).cscDetId();
-        if (id3 == id2) NsegPerChamber++;
-      }     
+      NsegPerChamber = 0;
+      for (CSCSegmentCollection::const_iterator segIt_3 = cscSegments->begin(); segIt_3 != cscSegments->end(); segIt_3++)
+        if ((CSCDetId)(*segIt_3).cscDetId() == id1) NsegPerChamber++;
       if (NsegPerChamber > 1) continue;
-     
+      
       
       // Check that have chambers in same station/ring
       if (id1.station()   == id2.station() &&
@@ -171,23 +246,23 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
       } else {
 	continue;
       }
-
-
+      
+      
       // Have potentially segments within overlapping region...  
-
+      
       if (debug) cout << "Found potential track pair overlapping" << endl;
-
+      
       // ...extract properties of segments to find out
-
+      
       // First segment properties
       LocalVector vec1 = (*segIt_1).localDirection();
       LocalPoint  xyz1 = (*segIt_1).localPosition();
-    
+      
       // Second segment properties
       LocalVector vec2 = (*segIt_2).localDirection();
       LocalPoint  xyz2 = (*segIt_2).localPosition();
-
-
+      
+      
       // Test if entrance angle for either segments is reasonable
       float z1 = vec1.z();
       float z2 = vec2.z();
@@ -195,11 +270,11 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
       if (z2 == 0.) z2 = 0.001;
       if (fabs(vec1.x()/z1) > maxdxdz || fabs(vec2.x()/z2) > maxdxdz || 
           fabs(vec1.y()/z1) > maxdydz || fabs(vec2.y()/z2) > maxdydz  ) continue;
-
+      
       if (debug) cout << "tracks satisfy entrance angle criteria" << endl;
-
+      
       // Need to tranform from local to global coordinates:
-
+      
       // First segment
       const CSCChamber* ch1 = cscGeom->chamber( id1 );
       GlobalPoint  Gxyz1 = ch1->toGlobal( xyz1 );
@@ -209,37 +284,37 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
       const CSCChamber* ch2 = cscGeom->chamber( id2 );
       GlobalPoint  Gxyz2 = ch2->toGlobal( xyz2 );
       GlobalVector Gvec2 = ch2->toGlobal( vec2 );
-
+      
       // Spacing between two origins in global coordinates:
       float deltaZ = Gxyz2.z() - Gxyz1.z();
-
+      
       // Compute extrapolated position from 1
-
+      
       // Note that there is confusion about the direction of the vector, so try either sign and
       // test which hypothesis (+/-) is better
       GlobalPoint Gxyz2prime; 
       GlobalPoint Gxyz2primeA(fabs(Gvec1.x()/Gvec1.z()) * deltaZ + Gxyz1.x(), 
 		              fabs(Gvec1.y()/Gvec1.z()) * deltaZ + Gxyz1.y(), 
 		              Gxyz2.z());
-
+      
       GlobalPoint Gxyz2primeB(-fabs(Gvec1.x()/Gvec1.z()) * deltaZ + Gxyz1.x(), 
 			      -fabs(Gvec1.y()/Gvec1.z()) * deltaZ + Gxyz1.y(), 
 			      Gxyz2.z());
-
+      
       GlobalVector R2A = Gxyz2 - Gxyz2primeA;
       float dR2A       = R2A.mag();
       GlobalVector R2B = Gxyz2 - Gxyz2primeB;
       float dR2B       = R2B.mag();
-
+      
       Gxyz2prime = Gxyz2primeA;
       if (dR2B < dR2A) Gxyz2prime = Gxyz2primeB;
-
+      
       // Compute extrapolated position from 2
       GlobalPoint Gxyz1prime; 
       GlobalPoint Gxyz1primeA(fabs(Gvec2.x()/Gvec2.z()) * deltaZ + Gxyz2.x(),
 			      fabs(Gvec2.y()/Gvec2.z()) * deltaZ + Gxyz2.y(),
 			      Gxyz1.z());
-
+      
       GlobalPoint Gxyz1primeB(-fabs(Gvec2.x()/Gvec2.z()) * deltaZ + Gxyz2.x(),
 			      -fabs(Gvec2.y()/Gvec2.z()) * deltaZ + Gxyz2.y(),
 			      Gxyz1.z());
@@ -292,17 +367,30 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
 
       // Now, look at 6-hit segment efficiency for 2nd segment    
       refMap[id2.chamber()]++;    // Reference (denominator)
-      if ((*segIt_2).nRecHits() == 6) chaMap[id2.chamber()]++;  // Count # of 6 hit segment
+      if ((*segIt_2).nRecHits() > 5 ) segMap[id2.chamber()]++;  // Count # of 6 hit segment
 
-      // and rechit efficiency per layer for 2nd segment    
-      for (int k = 1; k < 7; k++) refMap2[k]++;  // Reference (denominator)
 
-      const std::vector<CSCRecHit2D>& rh = (*segIt_1).specificRecHits();
-      for (std::vector<CSCRecHit2D>::const_iterator rhIter = rh.begin(); rhIter!=rh.end(); ++rhIter) { 
-        CSCDetId idrh = (CSCDetId)(*rhIter).cscDetId();
-        layMap[idrh.layer()]++;
+      // Look at rechit efficiency for the overlapping chambers
+      // denominators
+      OversegCount++;
+      if ((*segIt_1).nRecHits()==5) OversegCount5++;
+      for (CSCRecHit2DCollection::const_iterator recIt = recHits->begin(); recIt != recHits->end(); recIt++) {
+  
+        // Find chamber with rechits in CSC
+        CSCDetId idrec = (CSCDetId)(*recIt).cscDetId();
+  
+        int old_layer = 0;
+        if ((idrec.endcap() == id2.endcap()) &&
+            (idrec.ring() == id2.ring()) &&
+            (idrec.station() == id2.station()) &&
+            (idrec.chamber() == id2.chamber())) {
+          if (idrec.layer() != old_layer) {
+            OverlayMap[idrec.layer()]++;
+            if ((*segIt_2).nRecHits()==5) OverlayMap5[idrec.layer()]++;
+          }
+          old_layer = idrec.layer();
+        }
       }
-
      
       // Generate histograms
       Histos *histo = 0;

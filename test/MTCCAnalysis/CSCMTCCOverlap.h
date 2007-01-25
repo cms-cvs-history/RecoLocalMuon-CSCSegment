@@ -64,7 +64,7 @@ private:
 
   // Histograms stuff;
   TFile *theFile;
-  TH1F *hlayeff, *hsegeff;
+  TH1F *hlayeff, *hlayeff5, *hOverlayeff, *hOverlayeff5, *hsegeff;
   Histos* h1;
   Histos* h2;
   Histos* h3;
@@ -84,10 +84,15 @@ private:
   std::string cscSegmentLabel;
   std::string recHitLabel;
 
-  std::map<int, int> refMap;
-  std::map<int, int> refMap2;
+  // For hit efficiency
+  int segCount, segCount5, OversegCount, OversegCount5;
   std::map<int, int> layMap;
-  std::map<int, int> chaMap;
+  std::map<int, int> layMap5;
+  std::map<int, int> OverlayMap;
+  std::map<int, int> OverlayMap5;
+  // For segment efficiencies
+  std::map<int, int> refMap;
+  std::map<int, int> segMap;
 
 };
 
