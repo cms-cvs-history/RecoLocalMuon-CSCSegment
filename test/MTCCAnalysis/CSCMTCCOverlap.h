@@ -85,7 +85,7 @@ private:
   std::string recHitLabel;
 
   // For hit efficiency
-  int segCount, segCount5, OversegCount, OversegCount5;
+  long segCount, segCount5, OversegCount, OversegCount5;
   std::map<int, int> layMap;
   std::map<int, int> layMap5;
   std::map<int, int> OverlayMap;

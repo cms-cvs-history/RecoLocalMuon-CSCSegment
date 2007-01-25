@@ -183,7 +183,7 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
 
     // Restrain to calibrated ME-1/2 chambers
     if (id1.station() != 1 || id1.ring()    != 2 ) continue;  // Look at ME-1/2 chambers only
-    if (id1.chamber() < 26 || id1.chamber() > 31 ) continue;  // Look at chambers with calibrations: 27-31
+    if (id1.chamber() < 27 || id1.chamber() > 31 ) continue;  // Look at chambers with calibrations: 27-31
 
     // Test that have only 1 segment in this chamber  (to avoid combinatorics)
     int NsegPerChamber = 0;
@@ -412,8 +412,12 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
       if (id1.chamber() == 29) histo = h3;
       if (id1.chamber() == 30) histo = h4;
       if (debug) cout << "Have match and will fill histograms for " << Noverlaps << "th segment pair" << endl;	
+      if (debug) cout << dphi1 << " " << dx1 << " " << dy1 << " " << dR1 << " " 
+                      << dphi2 << " " << dx2 << " " << dy2 << " " << dR2 << " " << costheta12 << endl;
 
-      histo->Fill(dphi1, dx1, dy1, dR1, dphi2, dx2, dy2, dR2, costheta12);
+// Histogram filling causes crash... why ???????????
+//      histo->Fill(dphi1, dx1, dy1, dR1, dphi2, dx2, dy2, dR2, costheta12);
+
       Noverlaps++;
     }
   }
