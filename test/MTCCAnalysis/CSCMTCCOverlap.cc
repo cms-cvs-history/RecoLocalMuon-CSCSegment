@@ -58,7 +58,7 @@ CSCMTCCOverlap::CSCMTCCOverlap(const ParameterSet& pset) {
   minCosTheta12       = pset.getUntrackedParameter<double>("minCosTheta12");
 
 
-  if (debug) cout << "[CSCMTCCOverlap] Constructor called" << endl;
+  cout << "[CSCMTCCOverlap] Constructor called" << endl;
  
   // Create the root file
   theFile = new TFile(rootFileName.c_str(), "RECREATE");
@@ -154,8 +154,7 @@ CSCMTCCOverlap::~CSCMTCCOverlap(){
   theFile->Close();
   if (debug) cout << "[CSCMTCCOverlap] Finished writing histograms to file" << endl;
   
-  cout << "[CSCMTCCOverlap] Number of segment pairs for overlapping region is " << Noverlaps << endl;
-  
+  cout << "[CSCMTCCOverlap] Number of segment pairs for overlapping region is " << Noverlaps << endl;  
 }
 
 
@@ -170,37 +169,49 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
   // Get the Segments collection :
   Handle<CSCSegmentCollection> cscSegments; 
   event.getByLabel(cscSegmentLabel, cscSegments);  
-  if (debug) cout << " " << endl;
-  if (debug) cout << "   #cscSegments: " << cscSegments->size() << endl;
   
   // Get the RecHits collection :
   Handle<CSCRecHit2DCollection> recHits; 
   event.getByLabel(recHitLabel, recHits);  
-  if (debug) cout << "   #RecHits: " << recHits->size() << endl;
-  if (debug) cout << " " << endl;
   
+
   // First loop over segment
+
   for (CSCSegmentCollection::const_iterator segIt_1 = cscSegments->begin(); segIt_1 != cscSegments->end(); segIt_1++) {
     
     CSCDetId id1 = (CSCDetId)(*segIt_1).cscDetId();
 
     // Restrain to calibrated ME-1/2 chambers
     if (id1.station() != 1 || id1.ring()    != 2 ) continue;  // Look at ME-1/2 chambers only
-    if (id1.chamber() < 26 || id1.chamber() > 30 ) continue;  // Look at chambers with calibrations: 27-31
+    if (id1.chamber() < 26 || id1.chamber() > 31 ) continue;  // Look at chambers with calibrations: 27-31
 
-    
     // Test that have only 1 segment in this chamber  (to avoid combinatorics)
     int NsegPerChamber = 0;
     for (CSCSegmentCollection::const_iterator segIt_3 = cscSegments->begin(); segIt_3 != cscSegments->end(); segIt_3++)
       if ((CSCDetId)(*segIt_3).cscDetId() == id1) NsegPerChamber++;
     if (NsegPerChamber > 1) continue; 
     
+    // First segment properties
+    LocalVector vec1 = (*segIt_1).localDirection();
+    LocalPoint  xyz1 = (*segIt_1).localPosition();
+    const CSCChamber* chamber1 = cscGeom->chamber(id1);
+
+    // Test that entrance angle isn't too steep in x-z and y-z plane
+    float z1 = vec1.z();
+    if (z1 == 0.) z1 = 0.001;
+    if ( fabs(vec1.x()/z1) > maxdxdz || fabs(vec1.y()/z1) > maxdydz ) continue;
+
+     // Test that segment is fully within fiducial volume:
+     if ( !isSegInFiducial( chamber1, xyz1, vec1, 25.0 ) ) continue;
+
     
     // Look at hit reconstruction efficiency:
     
     // denominators
     segCount++;
     if ((*segIt_1).nRecHits()==5) segCount5++;
+
+    if (debug) cout << "Currently have found " << segCount << " segments" << endl;
     
     for (CSCRecHit2DCollection::const_iterator recIt = recHits->begin(); recIt != recHits->end(); recIt++) {
       
@@ -219,27 +230,19 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
         old_layer = idrec.layer();
       }
     }
-    
-    
-    // Further constraints for Overlap studies : # of hits on segment
+       
+    // Cut on the # of hits for overlap studies:    
     if ((*segIt_1).nRecHits() < minnhits) continue;    
     
     
     // Second loop over segment to find matching pair
+
     for (CSCSegmentCollection::const_iterator segIt_2 = cscSegments->begin(); segIt_2 != cscSegments->end(); segIt_2++) {
       
       if ((*segIt_2).nRecHits() < minnhits2) continue;
       
       CSCDetId id2 = (CSCDetId)(*segIt_2).cscDetId();
-      
-      
-      // Test that have only 1 segment in this chamber  (to avoid combinatorics)
-      NsegPerChamber = 0;
-      for (CSCSegmentCollection::const_iterator segIt_3 = cscSegments->begin(); segIt_3 != cscSegments->end(); segIt_3++)
-        if ((CSCDetId)(*segIt_3).cscDetId() == id1) NsegPerChamber++;
-      if (NsegPerChamber > 1) continue;
-      
-      
+          
       // Check that have chambers in same station/ring
       if (id1.station()   == id2.station() &&
           id1.ring()      == id2.ring()   ) {
@@ -249,6 +252,14 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
 	continue;
       }
       
+
+      // Test that have only 1 segment in this chamber  (to avoid combinatorics)
+      NsegPerChamber = 0;
+      for (CSCSegmentCollection::const_iterator segIt_3 = cscSegments->begin(); segIt_3 != cscSegments->end(); segIt_3++)
+        if ((CSCDetId)(*segIt_3).cscDetId() == id1) NsegPerChamber++;
+      if (NsegPerChamber > 1) continue;
+      
+      
       
       // Have potentially segments within overlapping region...  
       
@@ -256,36 +267,32 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
       
       // ...extract properties of segments to find out
       
-      // First segment properties
-      LocalVector vec1 = (*segIt_1).localDirection();
-      LocalPoint  xyz1 = (*segIt_1).localPosition();
-      
       // Second segment properties
       LocalVector vec2 = (*segIt_2).localDirection();
       LocalPoint  xyz2 = (*segIt_2).localPosition();
-      
-      
-      // Test if entrance angle for either segments is reasonable
-      float z1 = vec1.z();
+
+      const CSCChamber* chamber2 = cscGeom->chamber(id2);
+     
+      // Test that segment is fully within fiducial volume:
+      if ( !isSegInFiducial( chamber2, xyz2, vec2, 25.0 ) ) continue;
+   
+          
+      // Test if entrance angle is reasonable
       float z2 = vec2.z();
-      if (z1 == 0.) z1 = 0.001;
       if (z2 == 0.) z2 = 0.001;
-      if (fabs(vec1.x()/z1) > maxdxdz || fabs(vec2.x()/z2) > maxdxdz || 
-          fabs(vec1.y()/z1) > maxdydz || fabs(vec2.y()/z2) > maxdydz  ) continue;
-      
-      if (debug) cout << "tracks satisfy entrance angle criteria" << endl;
+      if ( fabs(vec2.x()/z2) > maxdxdz || fabs(vec2.y()/z2) > maxdydz  ) continue;      
+      if (debug) cout << "2nd track satisfy entrance angle criteria" << endl;
+
       
       // Need to tranform from local to global coordinates:
       
       // First segment
-      const CSCChamber* ch1 = cscGeom->chamber( id1 );
-      GlobalPoint  Gxyz1 = ch1->toGlobal( xyz1 );
-      GlobalVector Gvec1 = ch1->toGlobal( vec1 );
+      GlobalPoint  Gxyz1 = chamber1->toGlobal( xyz1 );
+      GlobalVector Gvec1 = chamber1->toGlobal( vec1 );
       
       // Second segment
-      const CSCChamber* ch2 = cscGeom->chamber( id2 );
-      GlobalPoint  Gxyz2 = ch2->toGlobal( xyz2 );
-      GlobalVector Gvec2 = ch2->toGlobal( vec2 );
+      GlobalPoint  Gxyz2 = chamber2->toGlobal( xyz2 );
+      GlobalVector Gvec2 = chamber2->toGlobal( vec2 );
       
       // Spacing between two origins in global coordinates:
       float deltaZ = Gxyz2.z() - Gxyz1.z();
@@ -331,8 +338,8 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
 
 
       // Transform the above into local coordinates of chambers:
-      LocalPoint xyz1prime = ch1->toLocal( Gxyz1prime );
-      LocalPoint xyz2prime = ch2->toLocal( Gxyz2prime );
+      LocalPoint xyz1prime = chamber1->toLocal( Gxyz1prime );
+      LocalPoint xyz2prime = chamber2->toLocal( Gxyz2prime );
 
 
       // Compare origin of segment 1 with predicated from segment 2:
@@ -366,6 +373,8 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
       if (costheta12 < minCosTheta12) continue;
       if (dR1 > maxDR || dR2 > maxDR ) continue;
 
+      if (debug) cout << "*** Segment pair satisfies selection " << endl;
+
 
       // Now, look at 6-hit segment efficiency for 2nd segment    
       refMap[id2.chamber()]++;    // Reference (denominator)
@@ -373,9 +382,11 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
 
 
       // Look at rechit efficiency for the overlapping chambers
+
       // denominators
       OversegCount++;
       if ((*segIt_1).nRecHits()==5) OversegCount5++;
+
       for (CSCRecHit2DCollection::const_iterator recIt = recHits->begin(); recIt != recHits->end(); recIt++) {
   
         // Find chamber with rechits in CSC
@@ -400,7 +411,7 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
       if (id1.chamber() == 28) histo = h2;
       if (id1.chamber() == 29) histo = h3;
       if (id1.chamber() == 30) histo = h4;
-      if (debug) cout << "Have match and will fill histograms !" << endl;	
+      if (debug) cout << "Have match and will fill histograms for " << Noverlaps << "th segment pair" << endl;	
 
       histo->Fill(dphi1, dx1, dy1, dR1, dphi2, dx2, dy2, dR2, costheta12);
       Noverlaps++;
