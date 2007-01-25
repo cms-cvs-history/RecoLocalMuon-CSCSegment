@@ -183,6 +183,11 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
   for (CSCSegmentCollection::const_iterator segIt_1 = cscSegments->begin(); segIt_1 != cscSegments->end(); segIt_1++) {
     
     CSCDetId id1 = (CSCDetId)(*segIt_1).cscDetId();
+
+    // Restrain to calibrated ME-1/2 chambers
+    if (id1.station() != 1 || id1.ring()    != 2 ) continue;  // Look at ME-1/2 chambers only
+    if (id1.chamber() < 26 || id1.chamber() > 30 ) continue;  // Look at chambers with calibrations: 27-31
+
     
     // Test that have only 1 segment in this chamber  (to avoid combinatorics)
     int NsegPerChamber = 0;
@@ -216,11 +221,8 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
     }
     
     
-    // Further constraints for Overlap studies:
-    
+    // Further constraints for Overlap studies : # of hits on segment
     if ((*segIt_1).nRecHits() < minnhits) continue;    
-    if (id1.station() != 1 || id1.ring()    != 2 ) continue;  // Look at ME-1/2 chambers only
-    if (id1.chamber() < 26 || id1.chamber() > 30 ) continue;  // Look at chambers with calibrations: 27-31
     
     
     // Second loop over segment to find matching pair
