@@ -28,11 +28,13 @@
 #include "FWCore/Framework/interface/EventSetup.h"
 
 #include "TFile.h"
+#include "TH1F.h"
 #include "TVector3.h"
 
 #include <iostream>
 #include <fstream>
 #include <map>
+#include <vector>
 #include <string>
 #include <stdio.h>
 #include <algorithm>
@@ -56,7 +58,7 @@ CSCMTCCOverlap::CSCMTCCOverlap(const ParameterSet& pset) {
   maxDphi             = pset.getUntrackedParameter<double>("maxDphi");
   maxDR               = pset.getUntrackedParameter<double>("maxDR");
   minCosTheta12       = pset.getUntrackedParameter<double>("minCosTheta12");
-
+  ChamberMarginAtEdges= pset.getUntrackedParameter<double>("ChamberMarginAtEdges");
 
   cout << "[CSCMTCCOverlap] Constructor called" << endl;
  
@@ -68,6 +70,7 @@ CSCMTCCOverlap::CSCMTCCOverlap(const ParameterSet& pset) {
   h2  = new Histos("ME12_28_29");
   h3  = new Histos("ME12_29_30");
   h4  = new Histos("ME12_30_31"); 
+  h5  = new Histos("ME12_31_32");  // Note that 32 isn't calibrated !!!
 
 
   segCount = 0;
@@ -82,6 +85,11 @@ CSCMTCCOverlap::CSCMTCCOverlap(const ParameterSet& pset) {
 // Destructor
 CSCMTCCOverlap::~CSCMTCCOverlap(){
 
+  cout << "[CSCMTCCOverlap] Destructor called " << endl;
+  cout << "Number of segment pairs for overlapping region is " << Noverlaps << endl;  
+  if (debug) cout << segCount << " " << segCount5 << " " << OversegCount << " " << OversegCount5 << endl;
+
+  hlayeff = new TH1F("hlayeff", "6-hit segment eff", layMap.size()*2 + 2, 0, layMap.size()*2 + 2); 
   hsegeff = new TH1F("hsegeff", "6-hit segment eff", refMap.size()*2 + 2, 0, refMap.size()*2 + 2); 
 
   int ibin = 0;
@@ -93,7 +101,7 @@ CSCMTCCOverlap::~CSCMTCCOverlap(){
     ibin++;    
     float eff = 0.;
     if (segCount >0) eff = 1.* (float)it->second / segCount; 
-    hlayeff->SetBinContent(ibin*2, eff);
+    hlayeff->SetBinContent(ibin, eff);
     //    hlayeff->GetXaxis()->SetBinLabel(ibin*2, (string)it->first);
     cout << "Layer" << it->first << "  : " << it->second << " " << segCount 
                                            << "  "       << eff << endl;
@@ -120,7 +128,6 @@ CSCMTCCOverlap::~CSCMTCCOverlap(){
     ibin++;
     float eff = 0.;
     if (OversegCount >0) eff = 1.* (float)it->second / OversegCount; 
-    hOverlayeff->SetBinContent(ibin*2, eff);
     cout << "Layer" << it->first << "  : " << it->second << " " << OversegCount
 	 << "  "       << eff << endl;
   }
@@ -138,13 +145,13 @@ CSCMTCCOverlap::~CSCMTCCOverlap(){
   for (map<int,int>::const_iterator it = segMap.begin(); it != segMap.end(); it++) {
     ibin++;
     float eff = (float)it->second/(float)refMap[it->first]; 
-    hsegeff->SetBinContent(ibin*2, eff);
+    hsegeff->SetBinContent(ibin, eff);
     cout << "Chamber" << it->first << ": " << it->second << " " << refMap[it->first] 
 	 << "  "       << eff << endl;
   }
   
-  
   theFile->cd();
+  hlayeff->Write();
   hsegeff->Write();
   h1->Write();
   h2->Write();
@@ -154,7 +161,6 @@ CSCMTCCOverlap::~CSCMTCCOverlap(){
   theFile->Close();
   if (debug) cout << "[CSCMTCCOverlap] Finished writing histograms to file" << endl;
   
-  cout << "[CSCMTCCOverlap] Number of segment pairs for overlapping region is " << Noverlaps << endl;  
 }
 
 
@@ -204,7 +210,7 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
      // Test that segment is fully within fiducial volume:
      if ( !isSegInFiducial( chamber1, xyz1, vec1, 25.0 ) ) continue;
 
-    
+  
     // Look at hit reconstruction efficiency:
     
     // denominators
@@ -212,13 +218,14 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
     if ((*segIt_1).nRecHits()==5) segCount5++;
 
     if (debug) cout << "Currently have found " << segCount << " segments" << endl;
-    
+
+
+    int old_layer = 0;    
     for (CSCRecHit2DCollection::const_iterator recIt = recHits->begin(); recIt != recHits->end(); recIt++) {
       
       // Find chamber with rechits in CSC 
       CSCDetId idrec = (CSCDetId)(*recIt).cscDetId();
       
-      int old_layer = 0;
       if ((idrec.endcap() == id1.endcap()) &&
           (idrec.ring() == id1.ring()) &&
           (idrec.station() == id1.station()) &&
@@ -378,21 +385,21 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
 
       // Now, look at 6-hit segment efficiency for 2nd segment    
       refMap[id2.chamber()]++;    // Reference (denominator)
-      if ((*segIt_2).nRecHits() > 5 ) segMap[id2.chamber()]++;  // Count # of 6 hit segment
+      if ((*segIt_2).nRecHits() == 6 ) segMap[id2.chamber()]++;  // Count # of 6 hit segment (numerator)
 
 
       // Look at rechit efficiency for the overlapping chambers
 
-      // denominators
+      // denominator for rechit efficiency
       OversegCount++;
-      if ((*segIt_1).nRecHits()==5) OversegCount5++;
+      if ((*segIt_2).nRecHits()==5) OversegCount5++;  // 5-hit segment case
 
+      old_layer = 0;
       for (CSCRecHit2DCollection::const_iterator recIt = recHits->begin(); recIt != recHits->end(); recIt++) {
   
         // Find chamber with rechits in CSC
         CSCDetId idrec = (CSCDetId)(*recIt).cscDetId();
   
-        int old_layer = 0;
         if ((idrec.endcap() == id2.endcap()) &&
             (idrec.ring() == id2.ring()) &&
             (idrec.station() == id2.station()) &&
@@ -407,16 +414,24 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
      
       // Generate histograms
       Histos *histo = 0;
-      if (id1.chamber() == 27) histo = h1;
-      if (id1.chamber() == 28) histo = h2;
-      if (id1.chamber() == 29) histo = h3;
-      if (id1.chamber() == 30) histo = h4;
+      if (id1.chamber() == 27) {
+	histo = h1;
+      } else if (id1.chamber() == 28) {
+	histo = h2;
+      } else if (id1.chamber() == 29) {
+	histo = h3;
+      } else if (id1.chamber() == 30) {
+	histo = h4;
+      } else if (id1.chamber() == 31) {
+	histo = h5;
+      } else {
+	continue;   // wrong chamber !!!
+      }
       if (debug) cout << "Have match and will fill histograms for " << Noverlaps << "th segment pair" << endl;	
       if (debug) cout << dphi1 << " " << dx1 << " " << dy1 << " " << dR1 << " " 
                       << dphi2 << " " << dx2 << " " << dy2 << " " << dR2 << " " << costheta12 << endl;
 
-// Histogram filling causes crash... why ???????????
-//      histo->Fill(dphi1, dx1, dy1, dR1, dphi2, dx2, dy2, dR2, costheta12);
+      histo->Fill(dphi1, dx1, dy1, dR1, dphi2, dx2, dy2, dR2, costheta12);
 
       Noverlaps++;
     }
@@ -427,8 +442,8 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
 
 bool CSCMTCCOverlap::isSegInFiducial( const CSCChamber* chamber, LocalPoint lp, LocalVector vec, float ChamberThickness ) { 
 
-  // Margin around dectector to ensure hit is well within fiducial volume
-  float marginAtEdges = 2.; 
+  // Margin around chambers to ensure hit is well within fiducial volume
+  float marginAtEdges = ChamberMarginAtEdges; // now read in from config file
 
   float dz = ChamberThickness/2.;
 

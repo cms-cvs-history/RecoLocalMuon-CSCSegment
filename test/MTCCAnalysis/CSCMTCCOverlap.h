@@ -69,6 +69,7 @@ private:
   Histos* h2;
   Histos* h3;
   Histos* h4;
+  Histos* h5;
 
 
   // Input from cfg file
@@ -80,6 +81,7 @@ private:
   float minCosTheta12;
   float maxDphi;
   float maxDR;
+  float ChamberMarginAtEdges;
   std::string rootFileName;
   std::string cscSegmentLabel;
   std::string recHitLabel;
