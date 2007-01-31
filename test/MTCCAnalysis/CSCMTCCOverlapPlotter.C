@@ -17,6 +17,7 @@ TString oRegion = "ME12_27_28";
 if (iRegion == 2) oRegion = "ME12_28_29";
 if (iRegion == 3) oRegion = "ME12_29_30";
 if (iRegion == 4) oRegion = "ME12_30_31";
+if (iRegion == 5) oRegion = "ME12_31_32";
 
 
 // Files for histogram output --> set suffixps to desired file type:  e.g. .eps, .jpg, ...
@@ -37,6 +38,19 @@ TString plot11= "deltaY12_"+oRegion+suffixps;
 TString plot12= "deltaR12_"+oRegion+suffixps;
 TString plot13= "deltaPhi12_"+oRegion+suffixps;
 
+// efficiency plots
+TString eplot1 = "eff_raw"+suffixps;
+TString eplot2 = "eff_6hit"+suffixps;
+TString eplot3 = "eff_nocfeb"+suffixps;
+TString eplot4 = "eff_layer"+suffixps;
+TString eplot5 = "eff_layer_27"+suffixps;
+TString eplot6 = "eff_layer_28"+suffixps;
+TString eplot7 = "eff_layer_29"+suffixps;
+TString eplot8 = "eff_layer_30"+suffixps;
+TString eplot9 = "eff_layer_31"+suffixps;
+TString eplot10 ="eff_layer_32"+suffixps;
+
+
 // ********************************************************************
 // Setting pointers to histograms
 // ********************************************************************
@@ -54,6 +68,20 @@ hDeltaX12       = (TH1F *) file->Get(oRegion+"_hlocalDx12");
 hDeltaY12       = (TH1F *) file->Get(oRegion+"_hlocalDy12");
 hDeltaR12       = (TH1F *) file->Get(oRegion+"_hDR12");
 hDeltaPhi12     = (TH1F *) file->Get(oRegion+"_hDphi12");
+
+// efficiencies
+
+hsegeffRaw     = (TH1F *) file->Get("hsegeffRaw");
+hsegeff        = (TH1F *) file->Get("hsegeff");
+hsegeffCFEB    = (TH1F *) file->Get("hsegeffCFEB");
+hlayeffall     = (TH1F *) file->Get("hlayeff");
+hlayeff27      = (TH1F *) file->Get("hlayeff_27");
+hlayeff28      = (TH1F *) file->Get("hlayeff_28");
+hlayeff29      = (TH1F *) file->Get("hlayeff_29");
+hlayeff30      = (TH1F *) file->Get("hlayeff_30");
+hlayeff31      = (TH1F *) file->Get("hlayeff_31");
+hlayeff32      = (TH1F *) file->Get("hlayeff_32");
+
 
 // ********************************************************************
 // Plotting
@@ -167,7 +195,89 @@ hDeltaPhi12     = (TH1F *) file->Get(oRegion+"_hDphi12");
 
 
 
- gROOT->ProcessLine(".q");
+// Efficiency plots
+
+gStyle->SetOptStat(kFALSE);
+
+TCanvas *c1 = new TCanvas("c1","");
+c1->SetFillColor(10);
+c1->SetFillColor(10);
+hsegeffRaw->SetTitle("");
+hsegeffRaw->Draw();
+c1->Print(eplot1);
+
+TCanvas *c1 = new TCanvas("c1","");
+c1->SetFillColor(10);
+c1->SetFillColor(10);
+hsegeff->SetTitle("");
+hsegeff->Draw();      
+c1->Print(eplot2);
+
+TCanvas *c1 = new TCanvas("c1","");
+c1->SetFillColor(10);
+c1->SetFillColor(10);
+hsegeffCFEB->SetTitle("");
+hsegeffCFEB->Draw();      
+c1->Print(eplot3);
+
+TCanvas *c1 = new TCanvas("c1","");
+c1->SetFillColor(10);
+c1->SetFillColor(10);
+hlayeffall->SetTitle("");
+hlayeffall->Draw();      
+hlayeffall->GetXaxis()->SetTitle("layer id");
+c1->Print(eplot4);
+
+TCanvas *c1 = new TCanvas("c1","");
+c1->SetFillColor(10);
+c1->SetFillColor(10);
+hlayeff27->SetTitle("ME12_27");
+hlayeff27->Draw();
+hlayeff27->GetXaxis()->SetTitle("layer id");
+c1->Print(eplot5);
+
+TCanvas *c1 = new TCanvas("c1","");
+c1->SetFillColor(10);
+c1->SetFillColor(10);
+hlayeff28->SetTitle("ME12_28");
+hlayeff28->Draw();
+hlayeff28->GetXaxis()->SetTitle("layer id");
+c1->Print(eplot6);
+
+TCanvas *c1 = new TCanvas("c1","");
+c1->SetFillColor(10);
+c1->SetFillColor(10);
+hlayeff29->SetTitle("ME12_29");
+hlayeff29->Draw();
+hlayeff29->GetXaxis()->SetTitle("layer id");
+c1->Print(eplot7);
+
+TCanvas *c1 = new TCanvas("c1","");
+c1->SetFillColor(10);
+c1->SetFillColor(10);
+hlayeff30->SetTitle("ME12_30");
+hlayeff30->Draw();
+hlayeff30->GetXaxis()->SetTitle("layer id");
+c1->Print(eplot8);
+
+TCanvas *c1 = new TCanvas("c1","");
+c1->SetFillColor(10);
+c1->SetFillColor(10);
+hlayeff31->SetTitle("ME12_31");
+hlayeff31->Draw();
+hlayeff31->GetXaxis()->SetTitle("layer id");
+c1->Print(eplot9);
+
+TCanvas *c1 = new TCanvas("c1","");
+c1->SetFillColor(10);
+c1->SetFillColor(10);
+hlayeff32->SetTitle("ME12-32");
+hlayeff32->Draw();
+hlayeff32->GetXaxis()->SetTitle("layer id");
+c1->Print(eplot10);
+
+
+gROOT->ProcessLine(".q");
 
 }
 
