@@ -72,13 +72,13 @@ CSCMTCCOverlap::CSCMTCCOverlap(const ParameterSet& pset) {
   h4  = new Histos("ME12_30_31"); 
   h5  = new Histos("ME12_31_32");  // Note that 32 isn't calibrated !!!
 
-
-  segCount = 0;
+  for (int chIdx = 0; chIdx < 7; chIdx++ ) segCount[chIdx] = 0;
+  
   segCount5 = 0;
   OversegCount = 0;
-  OversegCount5 = 0;
-  
+  OversegCount5 = 0;  
   Noverlaps = 0;
+
 }
 
 
@@ -87,35 +87,85 @@ CSCMTCCOverlap::~CSCMTCCOverlap(){
 
   cout << "[CSCMTCCOverlap] Destructor called " << endl;
   cout << "Number of segment pairs for overlapping region is " << Noverlaps << endl;  
-  if (debug) cout << segCount << " " << segCount5 << " " << OversegCount << " " << OversegCount5 << endl;
 
-  hlayeff = new TH1F("hlayeff", "6-hit segment eff", layMap.size()*2 + 2, 0, layMap.size()*2 + 2); 
-  hsegeff = new TH1F("hsegeff", "6-hit segment eff", refMap.size()*2 + 2, 0, refMap.size()*2 + 2); 
+  // Create histograms for rechit/segment efficiency for each ME-1/2 chambers:
 
-  int ibin = 0;
-
-  // Non-overlapping chambers:  raw rechit efficiency
-
-  cout << "Rechit efficiency for building hit on segment/layer" << endl;        
-  for (map<int,int>::const_iterator it = layMap.begin(); it != layMap.end(); it++) {
-    ibin++;    
-    float eff = 0.;
-    if (segCount >0) eff = 1.* (float)it->second / segCount; 
-    hlayeff->SetBinContent(ibin, eff);
-    //    hlayeff->GetXaxis()->SetBinLabel(ibin*2, (string)it->first);
-    cout << "Layer" << it->first << "  : " << it->second << " " << segCount 
-                                           << "  "       << eff << endl;
+  hlayeff[0] = new TH1F("hlayeff", "6-hit segment eff", layMap[0].size() + 2, 0, layMap[0].size() + 2); 
+  // Begin loop histograms for all types of chambers
+  char chName[9];
+  int chIdx = 1;
+  for (int ch = 27; ch < 33; ch++) {
+    sprintf(chName,"hlayeff_%d",ch);
+    hlayeff[chIdx] = new TH1F(chName, "6-hit segment eff", layMap[0].size() + 2, 0, layMap[0].size() + 2);
+    chIdx++;
   }
+
+  hsegeffRaw = new TH1F("hsegeffRaw", "Raw 6-hit segment eff", refMapRaw.size()*2 + 2, 0, refMapRaw.size()*2 + 2); 
+  hsegeff = new TH1F("hsegeff", "6-hit segment eff", refMap.size()*2 + 2, 0, refMap.size()*2 + 2); 
+  hsegeffCFEB = new TH1F("hsegeffCFEB", "6-hit segment eff", refMapCFEB.size()*2 + 2, 0, refMapCFEB.size()*2 + 2); 
+
+  cout << "Rechit efficiency for building hit on segment/layer" << endl;
+  int ibin;
+  for (chIdx = 0; chIdx < 7; chIdx++ ) {
+    ibin = 0;
+    for (map<int,int>::const_iterator it = layMap[chIdx].begin(); it != layMap[chIdx].end(); it++) {
+      ibin++;    
+      float eff = 0.;
+      if (segCount[chIdx] >0) eff = 1.* (float)it->second / segCount[chIdx]; 
+      hlayeff[chIdx]->SetBinContent(ibin, eff);
+      if ( chIdx == 0 ) cout << "Layer" << it->first << "  : " << it->second << " " << segCount[chIdx] << "  " << eff << endl;
+    }
+  }
+
   ibin = 0;
   cout << "Rechit efficiency for building hit from 5 hit segment" << endl;
   for (map<int,int>::const_iterator it = layMap5.begin(); it != layMap5.end(); it++) {
     ibin++;
     float eff = 0.;
     if (segCount5 >0) eff = 1.* (float)it->second / segCount5;
-    cout << "Layer" << it->first << "  : " << it->second << " " << segCount5
-                                           << "  "       << eff << endl;
+    cout << "Layer" << it->first << "  : " << it->second << " " << segCount5 << "  " << eff << endl;
   }
 
+  cout << "Raw efficiency for building 6-hit segment" << endl;
+  ibin = 0;
+  for (map<int,int>::const_iterator it = segMapRaw.begin(); it != segMapRaw.end(); it++) {
+    ibin++;
+    float eff = (float)it->second/(float)refMapRaw[it->first];
+    hsegeffRaw->SetBinContent(ibin*2, eff);
+    char chName2[8];
+    sprintf(chName2,"ME1/2-%d",it->first);
+    std::string myCh = string(chName2);
+    hsegeffRaw->GetXaxis()->SetBinLabel(ibin*2, chName2);
+    cout << "Chamber" << it->first << ": " << it->second << " " << refMapRaw[it->first]  << "  " << eff << endl;
+  }
+  
+  cout << "Efficiency for building 6-hit segment" << endl;
+  ibin = 0;
+  for (map<int,int>::const_iterator it = segMap.begin(); it != segMap.end(); it++) {
+    ibin++;
+    float eff = (float)it->second/(float)refMap[it->first];
+    hsegeff->SetBinContent(ibin*2, eff);
+    char chName2[8];
+    sprintf(chName2,"ME1/2-%d",it->first);
+    std::string myCh = string(chName2);
+    hsegeff->GetXaxis()->SetBinLabel(ibin*2, chName2);
+    cout << "Chamber" << it->first << ": " << it->second << " " << refMap[it->first]  << "  " << eff << endl;
+  }
+
+  cout << "Efficiency for building 6-hit segment (away from CFEB boundaries)" << endl;  
+  ibin = 0;
+  for (map<int,int>::const_iterator it = segMapCFEB.begin(); it != segMapCFEB.end(); it++) {
+    ibin++;
+    float eff = (float)it->second/(float)refMapCFEB[it->first];   
+    hsegeffCFEB->SetBinContent(ibin*2, eff);
+    char chName2[8];
+    sprintf(chName2,"ME1/2-%d",it->first);
+    std::string myCh = string(chName2);
+    hsegeffCFEB->GetXaxis()->SetBinLabel(ibin*2, chName2);
+    cout << "Chamber" << it->first << ": " << it->second << " " << refMapCFEB[it->first]  << "  " << eff << endl;
+  }
+    
+  
   cout << " " << endl;
   cout << "*** Results from overlapping chambers " << endl;
   cout << " " << endl;
@@ -128,8 +178,7 @@ CSCMTCCOverlap::~CSCMTCCOverlap(){
     ibin++;
     float eff = 0.;
     if (OversegCount >0) eff = 1.* (float)it->second / OversegCount; 
-    cout << "Layer" << it->first << "  : " << it->second << " " << OversegCount
-	 << "  "       << eff << endl;
+    cout << "Layer" << it->first << "  : " << it->second << " " << OversegCount << "  " << eff << endl;
   }
   ibin = 0;
   cout << "Rechit efficiency for building hit on 5-hit segment/layer" << endl;
@@ -137,30 +186,25 @@ CSCMTCCOverlap::~CSCMTCCOverlap(){
     ibin++;
     float eff = 0.;
     if (OversegCount5 >0) eff = 1.* (float)it->second / OversegCount5;
-    cout << "Layer" << it->first << "  : " << it->second << " " << OversegCount5
-	 << "  "       << eff << endl;
+    cout << "Layer" << it->first << "  : " << it->second << " " << OversegCount5 << "  " << eff << endl;
   }
-  ibin = 0;
-  cout << "Reco efficiency for building 6-hit segment" << endl;        
-  for (map<int,int>::const_iterator it = segMap.begin(); it != segMap.end(); it++) {
-    ibin++;
-    float eff = (float)it->second/(float)refMap[it->first]; 
-    hsegeff->SetBinContent(ibin, eff);
-    cout << "Chamber" << it->first << ": " << it->second << " " << refMap[it->first] 
-	 << "  "       << eff << endl;
-  }
+
+
+  // Write out to file:
   
   theFile->cd();
-  hlayeff->Write();
+  for (chIdx = 0; chIdx < 7; chIdx++) hlayeff[chIdx]->Write();  
+  hsegeffRaw->Write();
   hsegeff->Write();
+  hsegeffCFEB->Write();
   h1->Write();
   h2->Write();
   h3->Write();
   h4->Write();
   
   theFile->Close();
-  if (debug) cout << "[CSCMTCCOverlap] Finished writing histograms to file" << endl;
-  
+
+  if (debug) cout << "[CSCMTCCOverlap] Finished writing histograms to file" << endl;  
 }
 
 
@@ -189,7 +233,7 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
 
     // Restrain to calibrated ME-1/2 chambers
     if (id1.station() != 1 || id1.ring()    != 2 ) continue;  // Look at ME-1/2 chambers only
-    if (id1.chamber() < 27 || id1.chamber() > 31 ) continue;  // Look at chambers with calibrations: 27-31
+    if (id1.chamber() < 27 || id1.chamber() > 32 ) continue;  // Look at chambers with calibrations: 27-31
 
     // Test that have only 1 segment in this chamber  (to avoid combinatorics)
     int NsegPerChamber = 0;
@@ -207,19 +251,27 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
     if (z1 == 0.) z1 = 0.001;
     if ( fabs(vec1.x()/z1) > maxdxdz || fabs(vec1.y()/z1) > maxdydz ) continue;
 
-     // Test that segment is fully within fiducial volume:
-     if ( !isSegInFiducial( chamber1, xyz1, vec1, 25.0 ) ) continue;
+    // Test that segment is fully within fiducial volume:
+    if ( !isSegInFiducial( chamber1, xyz1, vec1, 25.0 ) ) continue;
 
   
-    // Look at hit reconstruction efficiency:
+    // Now, look at 6-hit segment efficiency for 2nd segment    
+    refMapRaw[id1.chamber()]++;                                   // Count # of events with 6 layers with hits (denominator)
+    if ((*segIt_1).nRecHits() == 6 ) segMapRaw[id1.chamber()]++;  // Count # of 6 hit segment (numerator)
+
+
+    // Look at hit and segment reconstruction efficiency:
     
     // denominators
-    segCount++;
+    segCount[0]++;
+    int id = 1;
+    for (int chIdx = 27; chIdx < 33; chIdx++) {
+      if (id1.chamber() == chIdx) segCount[id]++;
+      id++;
+    } 
     if ((*segIt_1).nRecHits()==5) segCount5++;
 
-    if (debug) cout << "Currently have found " << segCount << " segments" << endl;
-
-
+    int nLayers = 0;
     int old_layer = 0;    
     for (CSCRecHit2DCollection::const_iterator recIt = recHits->begin(); recIt != recHits->end(); recIt++) {
       
@@ -231,13 +283,32 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
           (idrec.station() == id1.station()) &&
           (idrec.chamber() == id1.chamber())) {
         if (idrec.layer() != old_layer) {
-          layMap[idrec.layer()]++;
+          layMap[0][idrec.layer()]++;
+          int id = 1;
+          nLayers++;
+          for (int chIdx = 27; chIdx < 33; chIdx++) {
+            if (id1.chamber() == chIdx) layMap[id][idrec.layer()]++;
+            id++;
+          }
           if ((*segIt_1).nRecHits()==5) layMap5[idrec.layer()]++;
         }
         old_layer = idrec.layer();
       }
     }
-       
+
+
+    // Now, look at 6-hit segment efficiency provided 6 rechits...
+    if (nLayers == 6) {
+      refMap[id1.chamber()]++;                                   // Count # of events with 6 layers with hits (denominator)
+      if ((*segIt_1).nRecHits() == 6 ) segMap[id1.chamber()]++;  // Count # of 6 hit segment (numerator)
+
+      if ( noHitNearBoundaries(chamber1, xyz1, vec1) ) {
+        refMapCFEB[id1.chamber()]++;                                   // Count # of events with 6 layers with hits (denominator)
+        if ((*segIt_1).nRecHits() == 6 ) segMapCFEB[id1.chamber()]++;  // Count # of 6 hit segment (numerator)
+      }   
+    }
+
+      
     // Cut on the # of hits for overlap studies:    
     if ((*segIt_1).nRecHits() < minnhits) continue;    
     
@@ -383,11 +454,6 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
       if (debug) cout << "*** Segment pair satisfies selection " << endl;
 
 
-      // Now, look at 6-hit segment efficiency for 2nd segment    
-      refMap[id2.chamber()]++;    // Reference (denominator)
-      if ((*segIt_2).nRecHits() == 6 ) segMap[id2.chamber()]++;  // Count # of 6 hit segment (numerator)
-
-
       // Look at rechit efficiency for the overlapping chambers
 
       // denominator for rechit efficiency
@@ -412,6 +478,7 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
         }
       }
      
+
       // Generate histograms
       Histos *histo = 0;
       if (id1.chamber() == 27) {
@@ -438,6 +505,41 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
   }
 }
 
+
+bool CSCMTCCOverlap::noHitNearBoundaries( const CSCChamber* chamber, LocalPoint lp, LocalVector vec ) { 
+
+
+  float dxdz = vec.x()/vec.z();
+  float dydz = vec.y()/vec.z();
+
+  GlobalPoint gp = chamber->toGlobal( lp );
+
+  for ( int lay = 1; lay < 7; lay++) {
+    const CSCLayer* layer = chamber->layer(lay);
+    const CSCLayerGeometry* layergeom = layer->geometry();
+
+    // Find the "z" at layer:
+    LocalPoint lpl = layer->toLocal( gp);
+    float zl = lpl.z(); 
+
+    // Propagate segment in local coordinates wrt center of chamber
+    float dz = zl - lp.z(); 
+    float xl = dxdz * dz + lp.x();
+    float yl = dydz * dz + lp.y();
+
+    // Bring to global coordinates, and then to layer coordinates
+    LocalPoint lp2(xl,yl,zl);
+    GlobalPoint gp2 = chamber->toGlobal( lp2 );
+    LocalPoint lp3 = layer->toLocal( gp2 );
+    
+    int nearestStrip = layergeom->nearestStrip( lp3 );
+
+    if (nearestStrip%16 < 2 ) return false;
+
+  }
+
+  return true;
+}
 
 
 bool CSCMTCCOverlap::isSegInFiducial( const CSCChamber* chamber, LocalPoint lp, LocalVector vec, float ChamberThickness ) { 

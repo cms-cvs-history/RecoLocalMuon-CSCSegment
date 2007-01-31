@@ -101,7 +101,6 @@ class Histos {
     hlocalDx12->Fill(-dx2); 
     hlocalDy12->Fill(-dy2); 
     hDR12->Fill(dR2);
-
   }
 
   /// Write all the histos to currently opened file

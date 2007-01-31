@@ -53,9 +53,8 @@ public:
   /// Perform the real analysis
   void analyze(const edm::Event & event, const edm::EventSetup& eventSetup);
 
-
   bool isSegInFiducial( const CSCChamber* chamber, LocalPoint lp, LocalVector vec, float ChamberThickness );
-
+  bool noHitNearBoundaries( const CSCChamber* chamber, LocalPoint lp, LocalVector vec );
 
 private: 
 
@@ -64,7 +63,7 @@ private:
 
   // Histograms stuff;
   TFile *theFile;
-  TH1F *hlayeff, *hlayeff5, *hOverlayeff, *hOverlayeff5, *hsegeff;
+  TH1F *hlayeff[7], *hlayeff5, *hOverlayeff, *hOverlayeff5, *hsegeffRaw, *hsegeff, *hsegeffCFEB;
   Histos* h1;
   Histos* h2;
   Histos* h3;
@@ -87,14 +86,18 @@ private:
   std::string recHitLabel;
 
   // For hit efficiency
-  long segCount, segCount5, OversegCount, OversegCount5;
-  std::map<int, int> layMap;
+  long segCount[7], segCount5, OversegCount, OversegCount5;
+  std::map<int, int> layMap[7];
   std::map<int, int> layMap5;
   std::map<int, int> OverlayMap;
   std::map<int, int> OverlayMap5;
   // For segment efficiencies
+  std::map<int, int> refMapRaw;
+  std::map<int, int> segMapRaw;
   std::map<int, int> refMap;
   std::map<int, int> segMap;
+  std::map<int, int> refMapCFEB;
+  std::map<int, int> segMapCFEB;
 
 };
 
