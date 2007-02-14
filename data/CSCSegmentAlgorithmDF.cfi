@@ -9,7 +9,7 @@ block DF_ME1234 = {
     untracked int32 minHitsPerSegment       = 3
     untracked double dRPhiFineMax           = 6.0
     untracked double dPhiFineMax            = 200.e-4
-    untracked double chi2Max                = 10000.
+    untracked double chi2Max                = 6000.
     untracked int32 minLayersApart          = 2
 }
 
@@ -19,7 +19,7 @@ block DF_ME1A = {
     untracked int32 minHitsPerSegment       = 3
     untracked double dRPhiFineMax           = 3.0
     untracked double dPhiFineMax            = 130.e-4
-    untracked double chi2Max                = 10000.
+    untracked double chi2Max                = 6000.
     untracked int32 minLayersApart          = 2
 }
 

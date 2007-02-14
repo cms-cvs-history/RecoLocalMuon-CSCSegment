@@ -14,7 +14,7 @@ block TC_ME1234 = {
     double dPhiFineMax = 200.e-4
     double chi2Max = 6000.  		# was 20. pre ORCA_8_10_x
     double chi2ndfProbMin = 1.e-4 	# optional minimal P(chi2,ndf) requirement for a segment (only active with SegmentSorting = 2)
-    int32 minLayersApart = 1
+    int32 minLayersApart = 2
     int32 SegmentSorting = 1            # select quality sorting scheme for segments
 }
 
@@ -28,7 +28,7 @@ block TC_ME1A = {
     double dPhiFineMax = 130.e-4  # 1.5x less than other chambers
     double chi2Max = 6000.  	  # was 20. pre ORCA_8_10_x
     double chi2ndfProbMin = 1.e-4 # minimal P(chi2,ndf) requirement for a segment
-    int32 minLayersApart = 1
+    int32 minLayersApart = 2
     int32 SegmentSorting = 1      # select quality sorting scheme for segments
 }
     
