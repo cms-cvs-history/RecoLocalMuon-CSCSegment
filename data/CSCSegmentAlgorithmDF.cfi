@@ -3,14 +3,28 @@
 # from the other algorithms which use a cylinder around the proto
 # segment and look for rechits within that cylinder
 
-block DF_ME1234 = {
+block DF_ME1234_1 = {
     untracked bool CSCSegmentDebug          = false
     untracked double nSigmaFromSegment      = 5.
     untracked int32 minHitsPerSegment       = 3
     untracked double dRPhiFineMax           = 6.0
-    untracked double dPhiFineMax            = 200.e-4
-    untracked double chi2Max                = 6000.
+    untracked double dPhiFineMax            = 0.025
+    untracked double chi2Max                = 10000.
     untracked int32 minLayersApart          = 2
+    untracked double thetaScaleMax          = 1.2
+    untracked double tanPhiMax              = 0.5
+}
+
+block DF_ME1234_2 = {
+    untracked bool CSCSegmentDebug          = false
+    untracked double nSigmaFromSegment      = 5.
+    untracked int32 minHitsPerSegment       = 3
+    untracked double dRPhiFineMax           = 6.0
+    untracked double dPhiFineMax            = 0.025
+    untracked double chi2Max                = 10000.
+    untracked int32 minLayersApart          = 2
+    untracked double thetaScaleMax          = 1.2
+    untracked double tanPhiMax              = 0.5
 }
 
 block DF_ME1A = {
@@ -18,19 +32,21 @@ block DF_ME1A = {
     untracked double nSigmaFromSegment      = 5.
     untracked int32 minHitsPerSegment       = 3
     untracked double dRPhiFineMax           = 3.0
-    untracked double dPhiFineMax            = 130.e-4
-    untracked double chi2Max                = 6000.
+    untracked double dPhiFineMax            = 0.013
+    untracked double chi2Max                = 10000.
     untracked int32 minLayersApart          = 2
+    untracked double thetaScaleMax          = 1.
+    untracked double tanPhiMax              = 0.5
 }
 
 block CSCSegAlgoDF = {
     
     VPSet algo_psets = {
-        {using DF_ME1234}, {using DF_ME1A}
+        {using DF_ME1234_1},{using DF_ME1234_2}, {using DF_ME1A}
     }
 		
-    # chamber_list ME1/a, ME1/b, ME1/1, ME1/2, ME2/1, ME2/2, ME3/1, ME3/2, ME4/1
-    vint32 parameters_per_chamber_type = {2, 1, 1, 1, 1, 1, 1, 1, 1}   
+    # chamber_list ME1/a, ME1/b, ME1/2, ME1/3, ME2/1, ME2/2, ME3/1, ME3/2, ME4/1
+    vint32 parameters_per_chamber_type = {3, 1, 1, 2, 1, 2, 1, 2, 1}   
 
     string algo_name = "CSCSegAlgoDF"
 }
