@@ -16,7 +16,7 @@ block DF_ME1234_1 = {
 }
 
 block DF_ME1234_2 = {
-    untracked bool CSCSegmentDebug          = false
+    untracked bool CSCSegmentDebug          = flase
     untracked double nSigmaFromSegment      = 5.
     untracked int32 minHitsPerSegment       = 3
     untracked double dRPhiFineMax           = 6.0
