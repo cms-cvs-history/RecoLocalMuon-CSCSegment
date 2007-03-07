@@ -15,8 +15,8 @@
 #include "DataFormats/MuonDetId/interface/CSCDetId.h"
 #include <DataFormats/CSCRecHit/interface/CSCRecHit2D.h>
 
-#include "Geometry/Vector/interface/LocalPoint.h"
-#include "Geometry/Vector/interface/LocalVector.h"
+#include "DataFormats/GeometryVector/interface/LocalPoint.h"
+#include "DataFormats/GeometryVector/interface/LocalVector.h"
 
 #include "Geometry/CSCGeometry/interface/CSCGeometry.h"
 #include <Geometry/CSCGeometry/interface/CSCChamber.h>
