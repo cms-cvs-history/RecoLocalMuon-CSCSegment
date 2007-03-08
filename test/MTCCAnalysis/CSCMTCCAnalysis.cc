@@ -8,16 +8,19 @@
 
 #include "CSCMTCCAnalysis.h"
 
-#include <DataFormats/CSCRecHit/interface/CSCSegmentCollection.h>
-#include <DataFormats/CSCRecHit/interface/CSCSegment.h>
-#include <DataFormats/CSCRecHit/interface/CSCRecHit2DCollection.h>
-#include <DataFormats/CSCRecHit/interface/CSCRecHit2D.h>
+#include "DataFormats/CSCRecHit/interface/CSCSegmentCollection.h"
+#include "DataFormats/CSCRecHit/interface/CSCSegment.h"
+#include "DataFormats/CSCRecHit/interface/CSCRecHit2DCollection.h"
+#include "DataFormats/CSCRecHit/interface/CSCRecHit2D.h"
 
 #include "Geometry/CSCGeometry/interface/CSCGeometry.h"
-#include <Geometry/CSCGeometry/interface/CSCChamber.h>
-#include <Geometry/CSCGeometry/interface/CSCLayer.h>
-#include <Geometry/CSCGeometry/interface/CSCLayerGeometry.h>
-#include <Geometry/Records/interface/MuonGeometryRecord.h>
+#include "Geometry/CSCGeometry/interface/CSCChamber.h"
+#include "Geometry/CSCGeometry/interface/CSCLayer.h"
+#include "Geometry/CSCGeometry/interface/CSCLayerGeometry.h"
+#include "Geometry/Records/interface/MuonGeometryRecord.h"
+// For clhep Matrix::solve
+#include "Geometry/CommonDetAlgo/interface/AlgebraicObjects.h"
+
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
 #include "DataFormats/GeometryVector/interface/GlobalVector.h"
 #include "DataFormats/GeometryVector/interface/LocalPoint.h"
@@ -614,4 +617,4 @@ void CSCMTCCAnalysis::SKFitSlope(ESHandle<CSCGeometry> cscGeom, int rechit_size)
 
 }
 
-DEFINE_FWK_MODULE(CSCMTCCAnalysis)
+DEFINE_FWK_MODULE(CSCMTCCAnalysis);
