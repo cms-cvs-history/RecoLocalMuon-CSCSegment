@@ -579,4 +579,4 @@ bool CSCMTCCOverlap::isSegInFiducial( const CSCChamber* chamber, LocalPoint lp, 
 
 }
 
-DEFINE_FWK_MODULE(CSCMTCCOverlap)
+DEFINE_FWK_MODULE(CSCMTCCOverlap);
