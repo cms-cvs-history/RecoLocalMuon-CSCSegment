@@ -19,7 +19,7 @@
 #include "Geometry/CSCGeometry/interface/CSCLayerGeometry.h"
 #include "Geometry/Records/interface/MuonGeometryRecord.h"
 // For clhep Matrix::solve
-#include "Geometry/CommonDetAlgo/interface/AlgebraicObjects.h"
+#include "DataFormats/CLHEP/interface/AlgebraicObjects.h"
 
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
 #include "DataFormats/GeometryVector/interface/GlobalVector.h"
@@ -445,7 +445,7 @@ void CSCMTCCAnalysis::analyze(const Event & event, const EventSetup& eventSetup)
             float angStrip = (csclayer_a->geometry())->stripAngle(fh_ch);
             float xshift =  SKfit_y[it2] / fabs(tan(angStrip));
             float x0OfStrip = (csclayer_a->geometry())->xOfStrip(fh_ch,fit_xyz.y());
-            float x1OfStrip = x0OfStrip + xshift ;
+	    //            float x1OfStrip = x0OfStrip + xshift ; // @@ unused
             float fstripWth = (csclayer_a->geometry())->stripPitch(fit_xyz);
             if ( fabs(SKfit_x[it2] - x0OfStrip) >= (0.50*fstripWth) ){
                cout << "strip width= "<< fstripWth <<"  dx= " <<fabs(SKfit_x[it2] - x0OfStrip) <<endl;
