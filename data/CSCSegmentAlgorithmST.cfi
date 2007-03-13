@@ -1,0 +1,50 @@
+# The following algorithms looks how far a rechit is from the
+# proto segment in terms of its error ellipse.  This is different
+# from the other algorithms which use a cylinder around the proto
+# segment and look for rechits within that cylinder
+
+block ST_ME1234 = {
+    untracked bool   CSCDebug                 = false
+    untracked int32  minHitsPerSegment        = 3
+    untracked double dXclusBoxMax             = 4.0
+    untracked double dYclusBoxMax             = 8.0
+#  maxRecHitsInCluster is the maximal number of hits in a precluster that is being processed
+#  This cut is intended to remove messy events. Currently nothing is returned if there are
+#  more that maxRecHitsInCluster hits. It could be useful to return an estimate of the 
+#  cluster position, which is available.
+    untracked int32  maxRecHitsInCluster      = 20
+    untracked bool   preClustering            = true
+    untracked bool   Pruning                  = false
+# to enable BrutePruning set both Pruning and BrutePruning to true
+    untracked bool   BrutePruning             = false
+    untracked bool   onlyBestSegment          = false
+}
+
+block ST_ME1A = {
+    untracked bool   CSCDebug                 = false
+    untracked int32  minHitsPerSegment        = 3
+    untracked double dXclusBoxMax             = 4.0
+    untracked double dYclusBoxMax             = 8.0
+#  maxRecHitsInCluster is the maximal number of hits in a precluster that is being processed
+#  This cut is intended to remove messy events. Currently nothing is returned if there are
+#  more that maxRecHitsInCluster hits. It could be useful to return an estimate of the 
+#  cluster position, which is available.
+    untracked int32  maxRecHitsInCluster      = 20
+    untracked bool   preClustering            = true
+# to enable BrutePruning set both Pruning and BrutePruning to true
+    untracked bool   Pruning                  = false
+    untracked bool   BrutePruning             = false
+    untracked bool   onlyBestSegment          = false
+}
+
+block CSCSegAlgoST = {
+    
+    VPSet algo_psets = {
+        {using ST_ME1234}, {using ST_ME1A}
+    }
+		
+    # chamber_list ME1/a, ME1/b, ME1/1, ME1/2, ME2/1, ME2/2, ME3/1, ME3/2, ME4/1
+    vint32 parameters_per_chamber_type = {2, 1, 1, 1, 1, 1, 1, 1, 1}   
+
+    string algo_name = "CSCSegAlgoST"
+}
