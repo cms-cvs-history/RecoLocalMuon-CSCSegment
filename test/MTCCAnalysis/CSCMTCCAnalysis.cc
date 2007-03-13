@@ -443,8 +443,8 @@ void CSCMTCCAnalysis::analyze(const Event & event, const EventSetup& eventSetup)
             // hit in centre of strip or edge of strip
             int fh_ch = (csclayer_a->geometry())->nearestStrip(fit_xyz);
             float angStrip = (csclayer_a->geometry())->stripAngle(fh_ch);
-            float xshift =  SKfit_y[it2] / fabs(tan(angStrip));
             float x0OfStrip = (csclayer_a->geometry())->xOfStrip(fh_ch,fit_xyz.y());
+	    //            float xshift =  SKfit_y[it2] / fabs(tan(angStrip)); 
 	    //            float x1OfStrip = x0OfStrip + xshift ; // @@ unused
             float fstripWth = (csclayer_a->geometry())->stripPitch(fit_xyz);
             if ( fabs(SKfit_x[it2] - x0OfStrip) >= (0.50*fstripWth) ){
