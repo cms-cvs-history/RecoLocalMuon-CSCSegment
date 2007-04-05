@@ -116,7 +116,7 @@ CSCMTCCOverlap::~CSCMTCCOverlap(){
       if ( chIdx == 0 ) cout << "Layer" << it->first << "  : " << it->second << " " << segCount[chIdx] << "  " << eff << endl;
     }
   }
-
+  
   ibin = 0;
   cout << "Rechit efficiency for building hit from 5 hit segment" << endl;
   for (map<int,int>::const_iterator it = layMap5.begin(); it != layMap5.end(); it++) {
@@ -138,12 +138,14 @@ CSCMTCCOverlap::~CSCMTCCOverlap(){
     hsegeffRaw->GetXaxis()->SetBinLabel(ibin*2, chName2);
     cout << "Chamber" << it->first << ": " << it->second << " " << refMapRaw[it->first]  << "  " << eff << endl;
   }
-  
+
+  int segCount6 = 0;  
   cout << "Efficiency for building 6-hit segment" << endl;
   ibin = 0;
   for (map<int,int>::const_iterator it = segMap.begin(); it != segMap.end(); it++) {
     ibin++;
     float eff = (float)it->second/(float)refMap[it->first];
+    segCount6 += (int)it->second;
     hsegeff->SetBinContent(ibin*2, eff);
     char chName2[8];
     sprintf(chName2,"ME1/2-%d",it->first);
@@ -165,7 +167,20 @@ CSCMTCCOverlap::~CSCMTCCOverlap(){
     cout << "Chamber" << it->first << ": " << it->second << " " << refMapCFEB[it->first]  << "  " << eff << endl;
   }
     
-  
+  float bineff = 6. * segCount6/(6. * segCount6 + segCount5);
+
+  cout << " " << endl;
+  cout << "*** Results from binomial statistics: " << endl;
+  cout << " " << endl;
+  cout << "Hit reconstruction efficiency =        6 * (# 6-hit seg)       " << endl;
+  cout << "                                -------------------------------" << endl;
+  cout << "                                6 (# 6-hit seg) + (# 5-hit seg)" << endl;
+  cout << " " << endl;
+  cout << "                              =       6 * " << segCount6                 << endl;
+  cout << "                                -------------------------------"         << endl;
+  cout << "                                6 * " << segCount6 << " + " << segCount5 << endl;
+  cout << " " << endl;
+  cout << "                              = " << bineff                              << endl;
   cout << " " << endl;
   cout << "*** Results from overlapping chambers " << endl;
   cout << " " << endl;
@@ -235,11 +250,17 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
     if (id1.station() != 1 || id1.ring()    != 2 ) continue;  // Look at ME-1/2 chambers only
     if (id1.chamber() < 27 || id1.chamber() > 32 ) continue;  // Look at chambers with calibrations: 27-31
 
+
+    // Cut on the # of hits for overlap studies:    
+    if ((*segIt_1).nRecHits() < minnhits) continue;    
+
+
     // Test that have only 1 segment in this chamber  (to avoid combinatorics)
     int NsegPerChamber = 0;
     for (CSCSegmentCollection::const_iterator segIt_3 = cscSegments->begin(); segIt_3 != cscSegments->end(); segIt_3++)
       if ((CSCDetId)(*segIt_3).cscDetId() == id1) NsegPerChamber++;
     if (NsegPerChamber > 1) continue; 
+
     
     // First segment properties
     LocalVector vec1 = (*segIt_1).localDirection();
@@ -254,7 +275,9 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
     // Test that segment is fully within fiducial volume:
     if ( !isSegInFiducial( chamber1, xyz1, vec1, 25.0 ) ) continue;
 
-  
+    // Test that segment doesn't go across CFEB boundaries:
+    if ( !noHitNearBoundaries(chamber1, xyz1, vec1) ) continue;
+
     // Now, look at 6-hit segment efficiency for 2nd segment    
     refMapRaw[id1.chamber()]++;                                   // Count # of events with 6 layers with hits (denominator)
     if ((*segIt_1).nRecHits() == 6 ) segMapRaw[id1.chamber()]++;  // Count # of 6 hit segment (numerator)
@@ -310,7 +333,7 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
 
       
     // Cut on the # of hits for overlap studies:    
-    if ((*segIt_1).nRecHits() < minnhits) continue;    
+    if ((*segIt_1).nRecHits() < minnhits2) continue;    
     
     
     // Second loop over segment to find matching pair
@@ -494,9 +517,6 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
       } else {
 	continue;   // wrong chamber !!!
       }
-      if (debug) cout << "Have match and will fill histograms for " << Noverlaps << "th segment pair" << endl;	
-      if (debug) cout << dphi1 << " " << dx1 << " " << dy1 << " " << dR1 << " " 
-                      << dphi2 << " " << dx2 << " " << dy2 << " " << dR2 << " " << costheta12 << endl;
 
       histo->Fill(dphi1, dx1, dy1, dR1, dphi2, dx2, dy2, dR2, costheta12);
 
@@ -508,13 +528,25 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
 
 bool CSCMTCCOverlap::noHitNearBoundaries( const CSCChamber* chamber, LocalPoint lp, LocalVector vec ) { 
 
+  // 1)
+  // Look in which CFEB group the segment is in layer 1 and 6.  
+  // If it is in the same group then return as "true".  
+  // If CFEB(1) != CFEB(6), then return as "false"
+  // If strip%16 < 2 --> next to CFEB, then return as "false"
 
+  // 2) 
+  // Make sure segment doesn't go near support Bar
+  // In ME1/2, support bar is ~ -35cm in local Y
+  // So test that no hit in layer between -30 and -40 cm
   float dxdz = vec.x()/vec.z();
   float dydz = vec.y()/vec.z();
-
+ 
   GlobalPoint gp = chamber->toGlobal( lp );
 
-  for ( int lay = 1; lay < 7; lay++) {
+  int CFEB_1, CFEB_6;
+  CFEB_1 = CFEB_6 = -1;
+
+  for (int lay = 1; lay < 7; lay++ ) {
     const CSCLayer* layer = chamber->layer(lay);
     const CSCLayerGeometry* layergeom = layer->geometry();
 
@@ -531,12 +563,22 @@ bool CSCMTCCOverlap::noHitNearBoundaries( const CSCChamber* chamber, LocalPoint 
     LocalPoint lp2(xl,yl,zl);
     GlobalPoint gp2 = chamber->toGlobal( lp2 );
     LocalPoint lp3 = layer->toLocal( gp2 );
-    
+
+    // These are the HV sections
+/*   if (lp3.y() < -76.6) return false;
+ *   if (lp3.y() > -40.6 && lp3.y() < -20.6 ) return false;
+ *   if (lp3.y() >  20.6 && lp3.y() <  40.6 ) return false;
+ *   if (lp3.y() >  76.6) return false;
+ */    
     int nearestStrip = layergeom->nearestStrip( lp3 );
-
-    if (nearestStrip%16 < 2 ) return false;
-
+ 
+    // Also remove case where hit is next to boundary
+    if (nearestStrip%16 < 2) return false;
+    if (lay == 1) CFEB_1 = (nearestStrip-1)/16;
+    if (lay == 6) CFEB_6 = (nearestStrip-1)/16;    
   }
+
+  if ( CFEB_1 != CFEB_6) return false;
 
   return true;
 }
@@ -547,33 +589,62 @@ bool CSCMTCCOverlap::isSegInFiducial( const CSCChamber* chamber, LocalPoint lp, 
   // Margin around chambers to ensure hit is well within fiducial volume
   float marginAtEdges = ChamberMarginAtEdges; // now read in from config file
 
-  float dz = ChamberThickness/2.;
+  GlobalPoint gp = chamber->toGlobal(lp);
 
+  // Find the "z" at layer 1:
   const CSCLayer* layer1 = chamber->layer(1);
   const CSCLayerGeometry* layergeom = layer1->geometry();
-  float apothem     = layergeom->length()/2.;
-  float widthTop    = layergeom->width()/2.;                     // Note these are half-widths
-  float widthBottom = layergeom->widthAtHalfLength() - widthTop; // t+b=2w
-  float slopeSide   = (widthTop - widthBottom) / (2. * apothem);
-  float interSide   = slopeSide * layergeom->widthAtHalfLength()/2.;
-  interSide = fabs(interSide);
+  LocalPoint lp1 = layer1->toLocal( gp );
+  float z1 = lp1.z(); 
+  float dz1 = z1 - lp.z();
 
+  // Find the "z" at layer 6:
+  const CSCLayer* layer6 = chamber->layer(6);
+  LocalPoint lp6 = layer6->toLocal( gp );
+  float z6 = lp6.z(); 
+  float dz6 = z6 - lp.z();
+
+  // Find extrapolated position at layer 1 and 6
   float dxdz = vec.x()/vec.z();
   float dydz = vec.y()/vec.z();
-   
-  float XatZ_pos = dxdz * dz + lp.x();
-  float YatZ_pos = dydz * dz + lp.y();
-  float XatZ_neg =-dxdz * dz + lp.x();
-  float YatZ_neg =-dydz * dz + lp.y();
+
+  // extrapolated local position vs chamber frame
+  float Xat6 = dxdz * dz6 + lp.x();
+  float Yat6 = dydz * dz6 + lp.y();
+  float Xat1 = dxdz * dz1 + lp.x();
+  float Yat1 = dydz * dz1 + lp.y();
+
+  // transform local positions to global and then to layer local position
+  LocalPoint lpat6(Xat6, Yat6, z6);
+  GlobalPoint gpat6 = chamber->toGlobal(lpat6);
+  LocalPoint lp6prime = layer6->toLocal(gpat6);
+  Xat6 = lp6prime.x();
+  Yat6 = lp6prime.y();
+
+  LocalPoint lpat1(Xat1, Yat1, z1);
+  GlobalPoint gpat1 = chamber->toGlobal(lpat1);
+  LocalPoint lp1prime = layer1->toLocal(gpat1);
+  Xat1 = lp1prime.x();
+  Yat1 = lp1prime.y();
+
+
+  // Find boundaries of chamber
+  float apothem     = layergeom->length()/2.;
+  float widthTop    = layergeom->width()/2.;                     // Note these are half-widths
+  float widthHalf   = layergeom->widthAtHalfLength()/2.;         // width at y = 0
+  float theM        = (widthTop - widthHalf) / apothem;          // m of x = m y + b
+  float theB        = widthHalf;                                 // b of x = m y + b
+
 
   // First look at top / bottom 
-  if (fabs(YatZ_neg) > apothem -marginAtEdges || fabs(YatZ_pos) > apothem - marginAtEdges) return false;
+  float maxY = apothem - marginAtEdges;
+  if ( fabs(Yat1) > maxY || fabs(Yat6) > maxY ) return false;
 
   // Now look at sides and use left-right chamber symmetry to ease test
-  float maxX_pos = fabs((YatZ_pos + interSide)/slopeSide) - marginAtEdges;
-  float maxX_neg = fabs((YatZ_neg + interSide)/slopeSide) - marginAtEdges;
+  float maxX6 = fabs( Yat6 * theM + theB) - marginAtEdges;
+  float maxX1 = fabs( Yat1 * theM + theB) - marginAtEdges;
 
-  if (fabs(XatZ_pos) > maxX_pos || fabs(XatZ_neg) > maxX_neg) return false;
+  if ( fabs(Xat6) > maxX6 || fabs(Xat1) > maxX1 ) return false;
 
   return true;
 
