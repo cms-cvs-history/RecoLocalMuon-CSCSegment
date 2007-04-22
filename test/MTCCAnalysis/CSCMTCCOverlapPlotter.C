@@ -10,7 +10,7 @@ void CSCMTCCOverlapPlotter(int iRegion){
   float nsigmas = 1.5;    // Number of sigmas around mean to fit gaussian.  It uses 2 iterations 
                           // i.e. range is = [mu - nsigmas * sigma, mu + nsigmas * sigma]
 
-TFile *file = TFile::Open("overlap_4241_sk.root");
+TFile *file = TFile::Open("overlap_4241_tc.root");
 
 TString oRegion = "ME12_27_28";
 
@@ -22,7 +22,7 @@ if (iRegion == 5) oRegion = "ME12_31_32";
 
 // Files for histogram output --> set suffixps to desired file type:  e.g. .eps, .jpg, ...
 
-TString suffixps = ".eps";
+TString suffixps = ".jpg";
 
 TString plot1 = "deltaX1_"+oRegion+suffixps;
 TString plot2 = "deltaX2_"+oRegion+suffixps;
