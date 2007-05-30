@@ -1,30 +1,26 @@
 /*
  *  Basic analyzer class which accesses CSCSegment and CSCRecHits
- *
- *
+ *  
  *  Author: Shih-Chuan Kao  - UC Riverside
- *          Dominique Fortin
+ *
  */
 
 #include "CSCMTCCAnalysis.h"
 
-#include "DataFormats/CSCRecHit/interface/CSCSegmentCollection.h"
-#include "DataFormats/CSCRecHit/interface/CSCSegment.h"
-#include "DataFormats/CSCRecHit/interface/CSCRecHit2DCollection.h"
-#include "DataFormats/CSCRecHit/interface/CSCRecHit2D.h"
+#include <DataFormats/CSCRecHit/interface/CSCSegmentCollection.h>
+#include <DataFormats/CSCRecHit/interface/CSCSegment.h>
+#include <DataFormats/CSCRecHit/interface/CSCRecHit2DCollection.h>
+#include <DataFormats/CSCRecHit/interface/CSCRecHit2D.h>
 
 #include "Geometry/CSCGeometry/interface/CSCGeometry.h"
-#include "Geometry/CSCGeometry/interface/CSCChamber.h"
-#include "Geometry/CSCGeometry/interface/CSCLayer.h"
-#include "Geometry/CSCGeometry/interface/CSCLayerGeometry.h"
-#include "Geometry/Records/interface/MuonGeometryRecord.h"
-// For clhep Matrix::solve
-#include "DataFormats/CLHEP/interface/AlgebraicObjects.h"
-
-#include "DataFormats/GeometryVector/interface/GlobalPoint.h"
-#include "DataFormats/GeometryVector/interface/GlobalVector.h"
-#include "DataFormats/GeometryVector/interface/LocalPoint.h"
-#include "DataFormats/GeometryVector/interface/LocalVector.h"
+#include <Geometry/CSCGeometry/interface/CSCChamber.h>
+#include <Geometry/CSCGeometry/interface/CSCLayer.h>
+#include <Geometry/CSCGeometry/interface/CSCLayerGeometry.h>
+#include <Geometry/Records/interface/MuonGeometryRecord.h>
+#include "Geometry/Vector/interface/GlobalPoint.h"
+#include "Geometry/Vector/interface/GlobalVector.h"
+#include "Geometry/Vector/interface/LocalPoint.h"
+#include "Geometry/Vector/interface/LocalVector.h"
  
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -68,8 +64,8 @@ CSCMTCCAnalysis::CSCMTCCAnalysis(const ParameterSet& pset){
   theFile = new TFile(rootFileName.c_str(), "RECREATE");
 
   // Book the histograms
-  hRHPMEa  = new H2DRecHit1("ME_0_1");
-//  hRHPMEb  = new H2DRecHit2("ME_0_2");
+  //  hRHPMEa  = new H2DRecHit1("ME_0_1");
+    hRHPMEb  = new H2DRecHit2("ME_0");
 
   // Begin loop histograms for all types of chambers
   char dets[6];
@@ -85,7 +81,7 @@ CSCMTCCAnalysis::CSCMTCCAnalysis(const ParameterSet& pset){
       }
   }
 
-  // Begin loop histograms for all chambers
+  // Begin loop histograms for each individual chamber and write this info into a mapfile
   char det_str[9];
   int cb_i1=0;
   int cb_i2=0;
@@ -94,7 +90,7 @@ CSCMTCCAnalysis::CSCMTCCAnalysis(const ParameterSet& pset){
           if (rg==1 && st!=1){
              for (int cb = 14; cb < 17; cb++){
                  sprintf(det_str,"ME_%d_%d_%d",st,rg,cb);
-                 hChamber1[cb_i1]  = new H2DRecHit3(det_str);
+                 hChamber1[cb_i1]  = new H2DRecHit1(det_str);
                  cout <<"hchamber1_" <<cb_i1 << " = " << det_str << endl;
                  fprintf (mapfile, "1 %d %d %d %d\n",cb_i1,st,rg,cb);
                  cb_i1++;
@@ -105,7 +101,7 @@ CSCMTCCAnalysis::CSCMTCCAnalysis(const ParameterSet& pset){
              break;
              for (int cb = 27; cb < 33; cb++) {
                  sprintf(det_str,"ME_%d_%d_%d",st,rg,cb);
-                 hChamber2[cb_i2]  = new H2DRecHit3(det_str);
+                 hChamber2[cb_i2]  = new H2DRecHit1(det_str);
                  cout <<"hchamber2_" <<cb_i2 << " = " << det_str << endl;
                  fprintf (mapfile, "2 %d %d %d %d\n",cb_i2,st,rg,cb);
                  cb_i2++;
@@ -124,8 +120,8 @@ CSCMTCCAnalysis::~CSCMTCCAnalysis(){
   if (debug) cout << "[CSCMTCCAnalysis] Destructor called" << endl;
   // Write the histos to file
   theFile->cd();
-  hRHPMEa ->Write();
-  //hRHPMEb ->Write(); 
+  //hRHPMEa ->Write();
+  hRHPMEb ->Write(); 
   // Begin loop histograms for all chambers
   for (int j=0; j < 9; j++){
       hChamber1[j]->Write();
@@ -145,13 +141,14 @@ CSCMTCCAnalysis::~CSCMTCCAnalysis(){
       delete hChamber2[k];
   }
   // End loop histograms for all chambers*/
-  delete hRHPMEa;
- // delete hRHPMEb; 
+  //delete hRHPMEa;
+   delete hRHPMEb; 
   theFile->Close();
   if (debug) cout << "************* Finished writing histograms to file" << endl;
 }
 
 // The Analysis  (the main)
+
 void CSCMTCCAnalysis::analyze(const Event & event, const EventSetup& eventSetup){
  
   if (event.id().event()%100 == 0) cout << " Event analysed #Run: " << event.id().run()
@@ -174,41 +171,38 @@ void CSCMTCCAnalysis::analyze(const Event & event, const EventSetup& eventSetup)
   // Build Iterator for Calibrated Segments
   H2DRecHit *histo = 0;
   H2DRecHit1 *histo1 = 0;
-//  H2DRecHit2 *histo2 = 0;
-  H2DRecHit3 *histo3 = 0;
+  H2DRecHit2 *histo2 = 0;
+  
 
-  //int c1=0;
-  float xorgc = 999.0;
-  float yorgc = 999.0;
+  double xorgc = 999.0;
+  double yorgc = 999.0;
   double err1[4] = {99.0};
-  double err2[5] = {99.0};
-  double err4[5] = {99.0};
-  float xFitErr[6]={0.0};
-  float xRecErr[6]={0.0};
-  float rht_y[6] ={0.0};
-  float rsd_a[6] ={0.0};
-  float dx_a[6] ={0.0};
-  float xPull[6]={0.0};
-  float SKrsduWth[6]={0.0};
-  float SKrsdu[6]={0.0};
+
+  double SKrsduWth[6]={0.0};
+  double SKrsdu[6]={0.0};
+
+  double dx_a[6] ={0.0};
+  double rht_y[6] ={0.0};
   int rht_ch[6] ={0};
+
   bool rh_type[6] ={false,false,false,false,false,false};
-  double rsd_Rdphi[6]={0.0};
-  double rsd_RdphiWth[6]={0.0};
+  bool rh_side = false;
   double X2c  = 999.0;
   int nhitsc = 999;
-  int DetNu[4]={999}; 
-  int nu_seg1=0;
-  bool seg_count1=false;
+  nu_seg1 = 0; 
+  seg_count1=false;
   bool no_gatti=false;
-  bool wrong_rh_err=false;
   bool y_edge=false;
+  bool wrong_rh_err=false;
+
+  for (int i=0; i<4; i++) {
+      DetNu[i]=999;
+  }
 
   for(CSCSegmentCollection::const_iterator segIt_1 = cscSegments->begin(); segIt_1 != cscSegments->end(); segIt_1++) 
   {
       int dof = (*segIt_1).degreesOfFreedom();
-      double a = 1.000;
-      double dofl = dof*a;
+      double dofl = static_cast<double>(dof);
       CSCDetId idc = (CSCDetId)(*segIt_1).cscDetId();
 
       LocalVector v1 = (*segIt_1).localDirection();
@@ -219,305 +213,264 @@ void CSCMTCCAnalysis::analyze(const Event & event, const EventSetup& eventSetup)
       xorgc = seg1_org.x();
       yorgc = seg1_org.y();
 
-      float xv1 = v1.x();
-      float yv1 = v1.y();
-      float zv1 = v1.z();
-      float slx1 = xv1/zv1;
-      float sly1 = yv1/zv1;
+      double slx1 = v1.x() / v1.z();
+      double sly1 = v1.y() / v1.z();
+      double RecX2[6]={0.0};
+      int rh_info[6][5] ={{999},{999}};
+      int ch_count =0;
+      int CFEB_flag = 99;
+      int CFEB_ck = 99;
+      int CFEB_nu = 0;
+      int nu_1ch_rh=0;
 
-      // Limit segments in fiducial volume
+      //(1) Limit segments in fiducial volume
       rh_V0.clear();
+
       const std::vector<CSCRecHit2D>& rh_V2 = (*segIt_1).specificRecHits();
       for (std::vector<CSCRecHit2D>::const_iterator rh_i0 = rh_V2.begin(); rh_i0!=rh_V2.end(); ++rh_i0)
       { 
+
+          rh_V0.push_back(*rh_i0);   
+
           CSCDetId idr1 = (CSCDetId)(*rh_i0).cscDetId();
           LocalPoint rh1_xyz = (*rh_i0).localPosition();
           const CSCLayer* csclayer = cscGeom->layer( idr1 );
           int nstrips =  (csclayer->geometry())->numberOfStrips(); 
-          float y_bound =  ((csclayer->geometry())->length())/2.0; 
+          double y_bound =  ((csclayer->geometry())->length())/2.0; 
 
+          ch_count =0;
+          rh_info[idr1.layer()-1][0] = idr1.layer();
+          // get the wire group of rechit
+          int wire_nu = (csclayer->geometry())->nearestWire(rh1_xyz);
+          rh_info[idr1.layer()-1][4] = (csclayer->geometry())->wireGroup(wire_nu);
+
+          // Check the channel distribution of rechits
           const std::vector<int> &ch_nu = (*rh_i0).channels();
           for (std::vector<int>::const_iterator ch_it = ch_nu.begin(); ch_it!=ch_nu.end(); ++ch_it)
           {
+              // check the fiducial volume
               if ((*ch_it >= nstrips-x_margin_R+1) || (*ch_it <= x_margin_L) ) {
                  no_gatti = true;
               }
               if (( rh1_xyz.y() > (y_bound - y_margin_T) )||( rh1_xyz.y() < (y_margin_B - y_bound) )) {
                  y_edge = true;
               }
+              //<1> fill strip number(1~80) of the rechit for each layer
+              ch_count += 1;
+              rh_info[idr1.layer()-1][ch_count] = *ch_it;
+
+              //<2> check the # of fired CFEB
+              if ( CFEB_ck != ((*ch_it-1)/16) ) {
+                 CFEB_nu += 1;
+                 CFEB_ck = (*ch_it-1)/16;
+              }
           }
-          rh_V0.push_back(*rh_i0);   
+          // pick up the segments which may be the CFEB effect victims -- w/ one "1-channel hit"
+          if (ch_nu.size()==1)  {
+             nu_1ch_rh +=1;
+             CFEB_flag = ( nu_1ch_rh >=2 ? 98  : idr1.layer() );
+          }
+          // look at the CFEB effect victims -- 6 hits -> 5hits
+          bool det_flag = true;
+          if (( idc.station()==1 && idc.ring()==1 ) || 
+              ( idc.station()==1 && idc.ring()==3 ) ||
+              ( idc.station()==2 && idc.ring()==1 ) ||
+              ( idc.station()==3 && idc.ring()==1 ) ){
+              det_flag = false;
+          }
+          if (nhitsc==5 && det_flag) {
+              histo2 = hRHPMEb;
+              for (int k=1; k<4; k++){
+                  histo2->Fill_A5(rh_info[idr1.layer()-1][0],rh_info[idr1.layer()-1][k],rh_info[idr1.layer()-1][4]);
+              }
+          }
+          if (nhitsc==6 && det_flag) {
+              histo2 = hRHPMEb;
+              for (int k=1; k<4; k++){
+                  histo2->Fill_A6(rh_info[idr1.layer()-1][0],rh_info[idr1.layer()-1][k],rh_info[idr1.layer()-1][4]);
+              }
+          }
       }
-      if (no_gatti || y_edge) 
+     
+    
+      if ( no_gatti || y_edge )
       break;
-      SKFitSlope(cscGeom,rh_V0.size());
-      //End of Limit segments in fiducial volume
+      
 
-      // **Segments Count
-      if (nu_seg1 == 0){ 
-         nu_seg1 = 1;
-         DetNu[0] = idc.endcap();
-         DetNu[1] = idc.station();
-         DetNu[2] = idc.ring();
-         DetNu[3] = idc.chamber();
-      } 
-      else if ( (idc.endcap() == DetNu[0]) && (idc.ring() == DetNu[2]) && (idc.station() == DetNu[1]) && (idc.chamber() == DetNu[3]) ) {
-              nu_seg1 = nu_seg1 + 1;
+      // (1)Counting the segments/chamber in each event
+      segment_chamber(idc);
+      // (1) End   
+
+      // (2) loop all hits in the segment - quick survey of the x pull
+      CSCSegment fq_seg = *segIt_1;
+      SKFitSlope(cscGeom, rh_V0.size(), rh_V0);
+      x_pull(&fq_seg, cscGeom);
+      for (int k=0; k<6; k++){
+          dx_a[k] = pull[k];
       }
-      else { 
-         seg_count1 = true;       
-         DetNu[0] = idc.endcap();
-         DetNu[1] = idc.station();
-         DetNu[2] = idc.ring();
-         DetNu[3] = idc.chamber();
-      }
-      // **Segments loop end   
+      // (2) End   
 
 
-      // loop all hits in the segment - quick survey of the x pull
-      const std::vector<CSCRecHit2D>& rh_V = (*segIt_1).specificRecHits();
-      float dz=0.0; 
-      float dy_rh=0.0; 
-      float dx_rh=0.0; 
-      float rh_xfit=0.0; 
-      float rh_yfit=0.0; 
-      float rsdx[6]={0.0};
-      LocalPoint fit_lp;
-
-	 for (std::vector<CSCRecHit2D>::const_iterator rh_i = rh_V.begin(); rh_i!=rh_V.end(); ++rh_i)
-         {
-             LocalPoint rh_xyz = (*rh_i).localPosition();
-             LocalError rh_err = (*rh_i).localPositionError();
-             CSCDetId idr = (CSCDetId)(*rh_i).cscDetId();
-
-             const CSCLayer* csclayer = cscGeom->layer( idr );
-             const CSCChamber* cscchamber = cscGeom->chamber(idr);
-             GlobalPoint grh_xyz = csclayer->toGlobal(rh_xyz);
-             LocalPoint lrh_xyz = cscchamber->toLocal(grh_xyz);
- 
-             dz = lrh_xyz.z() - seg1_org.z();
-
-             rh_xfit = slx1*dz + seg1_org.x();
-             rh_yfit = sly1*dz + seg1_org.y();
-             fit_lp = LocalPoint(rh_xfit, rh_yfit, 0.);
-  
-             dx_rh = rh_xyz.x() - rh_xfit;  
-             dy_rh = rh_xyz.y() - rh_yfit;  
-
-             wrong_rh_err = ( rh_err.xx() > 5.0 ? true : false);
-
-             if (nhitsc == 6.0) {
-                int it = idr.layer() - 1;
-                float rh_fit_err =  SKErr[0] + (dz*dz*SKErr[2]) + (2.0*dz*SKErr[4]);
-                dx_a[it] = dx_rh; 
-                rsdx[it] = dx_rh / sqrt(rh_err.xx() - rh_fit_err);
-             }
-
-         }
-         // End of Segment hits loop
-
-      // check the err distribution
-      if (nhitsc ==6){  
+      // (3) look at the properties of 6 hits segments
+      if (nhitsc ==6) {
          if (!wrong_rh_err ){ 
             err1[0] = sqrt(SKErr[0]);
             err1[1] = sqrt(SKErr[1]);
             err1[2] = sqrt(SKErr[2]);
             err1[3] = sqrt(SKErr[3]);
-            err2[0] = SKErr[0];
-            err2[1] = SKErr[1];
-            err2[2] = SKErr[2];
-            err2[3] = SKErr[3];
-            err2[4] = SKErr[4];
-            histo1 = hRHPMEa;
-            histo1->Fill_b(rsdx[0],rsdx[1],rsdx[2],rsdx[3],rsdx[4],rsdx[5]);
          }
-      }
-      // End of segment hits loop
-
-
-      if (nhitsc ==6) {
-         float SKrsdx[6]={0.0};
-         float SKrsdy[6]={0.0};
-         float SKfit_x[6]={0.0};
-         float SKfit_y[6]={0.0};
-         float rht_x[6]={0.0};
-         float rht_phi[6] ={0.0};
-         float stripWth[6] ={0.0};
-         float gR = 0.0;
-         float SKfit_u[6]={0.0};
-         float rht_u[6]={0.0};
-         float ang[6]={0.0};
-
-         const std::vector<CSCRecHit2D>& rh_V1 = (*segIt_1).specificRecHits();
-         CSCDetId idr1;
-         CSCDetId idr1_a[6];
-         GlobalPoint grh1_xyz;
-         GlobalPoint grh1_xyz_a;
-         GlobalPoint gfit_xyz;
-         LocalPoint rh1_xyz;
-         LocalPoint fit_xyz;
-         LocalError rh1_err;
-         float dzz[6]={0.0};
-
-         for (int it2 = 0; it2 < 6; it2++){
-            rh_V0.clear();
-	    for (std::vector<CSCRecHit2D>::const_iterator rh_i2 = rh_V1.begin(); rh_i2!=rh_V1.end(); ++rh_i2)
-            { 
-                idr1 = (CSCDetId)(*rh_i2).cscDetId();
-                rh1_xyz = (*rh_i2).localPosition();
-                rh1_err = (*rh_i2).localPositionError();
-
-                const CSCLayer* csclayer = cscGeom->layer( idr1 );
-                const CSCChamber* cscchamber = cscGeom->chamber( idr1 );
-                grh1_xyz = csclayer->toGlobal(rh1_xyz);
-                LocalPoint lrh1_xyz = cscchamber->toLocal(grh1_xyz);
-
-
-
-                // x Pull calculation for each layer!
-                if ((idr1.layer()-1) == it2) {
-                   idr1_a[it2] = (CSCDetId)(*rh_i2).cscDetId();
-                   const CSCLayer* csclayer_a = cscGeom->layer( idr1_a[it2] );
-                   grh1_xyz_a = csclayer_a->toGlobal(rh1_xyz);
-
-                   rht_phi[it2] = grh1_xyz_a.phi();
-                   rht_x[it2] = rh1_xyz.x();
-                   rht_y[it2] = rh1_xyz.y();
-                   dzz[it2] = lrh1_xyz.z();
-                   stripWth[it2] = (csclayer->geometry())->stripPitch(rh1_xyz);
-
-                   float dxx = rht_x[it2]- ( slx1*dzz[it2] + seg1_org.x() );
-                   float rh1_fit_err =  err2[0] + (dzz[it2]*dzz[it2]*err2[2]) + (2.0*dzz[it2]*err2[4]);
-                   xRecErr[it2] = rh1_err.xx();
-                   xPull[it2] = dxx /sqrt(rh1_err.xx() - rh1_fit_err);  
-                   // rotate the x to u
-                   ang[it2] = 0.5*atan( 2.*rh1_err.xy()/(rh1_err.xx()-rh1_err.yy()) ); 
-                   rht_u[it2] = rht_x[it2]*cos(ang[it2])+rht_y[it2]*sin(ang[it2]);
-                   rht_ch[it2] = (csclayer->geometry())->nearestStrip(rh1_xyz);
-                }
-
-                // pick up the rest 5 hits and fill them in new vector rh_V0
-                if ( (idr1.layer()-1) != it2 ) {
-                   rh_V0.push_back(*rh_i2);
-                }
-
-            }
-
-            // Fit the rest 5 hits to get un-bias residual
-            SKFitSlope(cscGeom,rh_V0.size());
-            err4[0] = SKErr[0]; // err^2 of origin x 
-            err4[1] = SKErr[1]; // err^2 of origin y
-            err4[2] = SKErr[2]; // err^2 of dx/dz 
-            err4[3] = SKErr[3]; // err^2 of dy/dz 
-            err4[4] = SKErr[4]; // err^2 of x*dx/dz 
-	    double sk_x  = SKFit[0];
-            double sk_y  = SKFit[1];
-	    double sk_mxz = SKFit[2];
-	    double sk_myz = SKFit[3];
-
-            SKfit_x[it2]= sk_mxz*dzz[it2] + sk_x; 
-            SKfit_y[it2]= sk_myz*dzz[it2] + sk_y;
- 
-            SKrsdx[it2]= rht_x[it2] - SKfit_x[it2];
-            //SKrsdxWth[it2]= (rht_x[it2] - SKfit_x[it2])/stripWth[it2];
-            SKrsdy[it2]= rht_y[it2] - SKfit_y[it2];
-            rsd_a[it2] = SKrsdx[it2];
-             
-            // rotate dx to du
-            SKfit_u[it2]=   ( sk_mxz*cos(ang[it2])+sk_myz*sin(ang[it2]) )*dzz[it2] 
-                          + ( sk_x*cos(ang[it2])+sk_y*sin(ang[it2]) );
-            SKrsdu[it2]= rht_u[it2] - SKfit_u[it2];
-            SKrsduWth[it2]= SKrsdu[it2]/stripWth[it2];
-            //////////// 
-
-            xFitErr[it2] =  err4[0] + (err4[2]*dzz[it2]*dzz[it2]) +(2.0*dzz[it2]*err4[4]);
-
-            fit_xyz = LocalPoint(SKfit_x[it2], SKfit_y[it2], 0.);  
-            const CSCLayer* csclayer_a = cscGeom->layer( idr1_a[it2] );
-            gfit_xyz = csclayer_a->toGlobal(fit_xyz);
-
-            gR = sqrt( (gfit_xyz.x()*gfit_xyz.x()) + (gfit_xyz.y()*gfit_xyz.y()) );
-            rsd_Rdphi[it2] = ( rht_phi[it2] - gfit_xyz.phi() )*gR;
-            rsd_RdphiWth[it2] = rsd_Rdphi[it2]/stripWth[it2];
-
-            // hit in centre of strip or edge of strip
-            int fh_ch = (csclayer_a->geometry())->nearestStrip(fit_xyz);
-            float angStrip = (csclayer_a->geometry())->stripAngle(fh_ch);
-            float x0OfStrip = (csclayer_a->geometry())->xOfStrip(fh_ch,fit_xyz.y());
-	    //            float xshift =  SKfit_y[it2] / fabs(tan(angStrip)); 
-	    //            float x1OfStrip = x0OfStrip + xshift ; // @@ unused
-            float fstripWth = (csclayer_a->geometry())->stripPitch(fit_xyz);
-            if ( fabs(SKfit_x[it2] - x0OfStrip) >= (0.50*fstripWth) ){
-               cout << "strip width= "<< fstripWth <<"  dx= " <<fabs(SKfit_x[it2] - x0OfStrip) <<endl;
-               cout << "x_strip@0= "<<x0OfStrip <<"  x shift= "<<SKfit_y[it2]/tan(angStrip)<<endl;
-               cout << "y = "<< SKfit_y[it2] <<" ang= "<<angStrip<<" tan(angle) = "<< tan(angStrip) <<endl;
-               cout <<"===================================================="<<endl;
-            }
-             rh_type[it2]=( fabs(SKfit_x[it2] - x0OfStrip) <= (0.35*fstripWth) ? true : false );
-        
-
+   
+         // ==1== x pull calculation  ====
+         CSCSegment fq_seg = *segIt_1;
+         SKFitSlope(cscGeom, rh_V0.size(), rh_V0);
+         x_pull(&fq_seg, cscGeom);
+         // ==2== residual funciton test ====
+         // Residual < Rdphi / x / y / 5hitsfit >
+         residual(&fq_seg, cscGeom);
+         // ==3== classify the in-strip/inter-strip case ====
+         // ===== and record the hit information         ====
+         double XRec[6]={0.0};
+         double XFit[6]={0.0};
+         double rht_y[6]={0.0};
+         for (int k=0; k<6; k++) {
+             hit_info(fhit_cont[k],det_fit[k], cscGeom);
+             rh_type[k] = rh_type_i;
+             rh_side = rh_side_i;
+             XRec[k]=(rhit_cont[k]).x()-strip_x;
+             XFit[k]=(fhit_cont[k]).x()-strip_x;
+             rht_y[k]=(rhit_cont[k]).y();
          }
+         // ==4== rotation ====
+         rotation(&fq_seg, fhit_cont ,cscGeom);
+         for (int k=0; k<6; k++) {
+             SKrsduWth[k]= (rh_u[k]-fit_u[k]) / cont[k];
+         }
+         // ======================================
 
-         //!! filling histograms for 6 layers of all chambers 
-         if ( (fabs(slx1) < maxdxdz) && (fabs(sly1)< maxdydz) && (!no_gatti)&& (!wrong_rh_err) && (!y_edge)) {
- //           histo2 = hRHPMEb;
+    
+         // Filling histograms crazily for 6 layers of  each individual chamber  ex: ME_2_2_27
+         // Filling (a) x residual(cm) , (b) u(rotated x) residual(strip width) , 
+         //         (1) Rdphi residual(strip width) for each layer , (2) Rdphi residual(cm)
+         //         (3) x Pull(cm) , (4) y residual(cm)
+         //         (5) the local y vs. the Rdphi residuals(in terms of cm and strip width)   
+         // dmap[0] is the flag for different detector type numbering 
+         // dmap[0]=1  => det# = 14 ~ 16  ; dmap[0]=2  => det# = 27 ~ 32
+
+         if ( (fabs(slx1) < maxdxdz) && (fabs(sly1)< maxdydz) && (sly1<0.5) && (!wrong_rh_err) ) {
             int dmap[5]={99,99,99,99,99};
             ifstream dmapping("CSCMTCC_MAP.txt");
             while (!dmapping.eof()) {
                   dmapping >> dmap[0] >> dmap[1] >> dmap[2] >> dmap[3] >> dmap[4];
                   if (dmap[0]==1 && idc.station()==dmap[2] && idc.ring()==dmap[3] && idc.chamber()==dmap[4] ){
-                     histo3 = hChamber1[dmap[1]];
-                     histo3->Fill_f(SKrsdx[0],SKrsdx[1],SKrsdx[2],SKrsdx[3],SKrsdx[4],SKrsdx[5],SKrsduWth[0],SKrsduWth[1],SKrsduWth[2],SKrsduWth[3],SKrsduWth[4],SKrsduWth[5],xPull[0],xPull[1],xPull[2],xPull[3],xPull[4],xPull[5]);
-                     histo3->Fill_i(SKrsdy[0],SKrsdy[1],SKrsdy[2],SKrsdy[3],SKrsdy[4],SKrsdy[5],rsd_Rdphi[0],rsd_Rdphi[1],rsd_Rdphi[2],rsd_Rdphi[3],rsd_Rdphi[4],rsd_Rdphi[5]);
-                     //histo3->Fill_j(SKrsdu[0],SKrsdu[1],SKrsdu[2],SKrsdu[3],SKrsdu[4],SKrsdu[5]);
-                     histo3->Fill_j(rsd_RdphiWth[0],rsd_RdphiWth[1],rsd_RdphiWth[2],rsd_RdphiWth[3],rsd_RdphiWth[4],rsd_RdphiWth[5]);
-                     for (int k=0; k<6; k++ ) {
-                         histo3->Fill_l(rsd_Rdphi[k],rsd_RdphiWth[k],rht_y[k]);
+                   histo1 = hChamber1[dmap[1]];
+                   if ( nu_1ch_rh == 0 ) {
+                     // Filling (a) x residual(cm) , (b) u residual(strip width) 
+                     histo1->Fill_f(resid_X[0],resid_X[1],resid_X[2],resid_X[3],resid_X[4],resid_X[5],SKrsduWth[0],SKrsduWth[1],SKrsduWth[2],SKrsduWth[3],SKrsduWth[4],SKrsduWth[5]);
+                     // Filling (1) Rdphi residual(strip width), (2) Rdphi residual(cm)
+                     histo1->Fill_1(resid_RdfWth[0],resid_RdfWth[1],resid_RdfWth[2],resid_RdfWth[3],resid_RdfWth[4],resid_RdfWth[5],resid_Rdf[0],resid_Rdf[1],resid_Rdf[2],resid_Rdf[3],resid_Rdf[4],resid_Rdf[5]);
+                     // Filling (3) x Pull(cm)
+                     histo1->Fill_2(pull[0],pull[1],pull[2],pull[3],pull[4],pull[5]);
+                     // Filling (4) y residual(cm)
+                     histo1->Fill_3(resid_Y[0],resid_Y[1],resid_Y[2],resid_Y[3],resid_Y[4],resid_Y[5]);
+                     // (5) look at the relation between local y and Rdphi residual
+                     // inter-strip case
+                     if (rh_type[3]==false) {   
+                         histo1->Fill_4_3(resid_Rdf[3],resid_RdfWth[3],rht_y[3]);
+                         if (rh_side){
+                             histo1->Fill_4_3P(resid_RdfWth[3]);
+                         }
+                         if (!rh_side) {
+                             histo1->Fill_4_3N(resid_RdfWth[3]);
+                         }
                      }
+                     // in-strip case
+                     if (rh_type[3]==true) {   
+                         histo1->Fill_4a_3(resid_Rdf[3],resid_RdfWth[3],rht_y[3]);
+                     }
+                     histo1->Fill_4b(resid_Rdf[0],rht_y[0],resid_Rdf[1],rht_y[1],resid_Rdf[2],rht_y[2],resid_Rdf[3],rht_y[3],resid_Rdf[4],rht_y[4],resid_Rdf[5],rht_y[5]);
+                     for (int k=0; k<6; k++ ) {
+                         histo1->Fill_4c(resid_Rdf[k],resid_RdfWth[k],rht_y[k],XFit[k],XRec[k]);
+                     }
+
+                   }
+                     // (6) the pull and residual with CFEB boundary effect
+                    //if (CFEB_flag <=6 && !cross_seg1) {
+                    if (CFEB_flag <=6 && (CFEB_nu==1) ) {
+                       histo1->Fill_5(pull[CFEB_flag-1],resid_Rdf[CFEB_flag-1],CFEB_flag,xRecErr[CFEB_flag-1],slx1);
+                       histo1->Fill_6(pull[6-CFEB_flag],resid_Rdf[6-CFEB_flag],CFEB_flag);
+                    }
                   }
                   if (dmap[0]==2 && idc.station()==dmap[2] && idc.ring()==dmap[3] && idc.chamber()==dmap[4] ){
-                     histo3 = hChamber2[dmap[1]];
-                     histo3->Fill_f(SKrsdx[0],SKrsdx[1],SKrsdx[2],SKrsdx[3],SKrsdx[4],SKrsdx[5],SKrsduWth[0],SKrsduWth[1],SKrsduWth[2],SKrsduWth[3],SKrsduWth[4],SKrsduWth[5],xPull[0],xPull[1],xPull[2],xPull[3],xPull[4],xPull[5]);
-                     histo3->Fill_i(SKrsdy[0],SKrsdy[1],SKrsdy[2],SKrsdy[3],SKrsdy[4],SKrsdy[5],rsd_Rdphi[0],rsd_Rdphi[1],rsd_Rdphi[2],rsd_Rdphi[3],rsd_Rdphi[4],rsd_Rdphi[5]);
-                     //histo3->Fill_j(SKrsdu[0],SKrsdu[1],SKrsdu[2],SKrsdu[3],SKrsdu[4],SKrsdu[5]);
-                     histo3->Fill_j(rsd_RdphiWth[0],rsd_RdphiWth[1],rsd_RdphiWth[2],rsd_RdphiWth[3],rsd_RdphiWth[4],rsd_RdphiWth[5]);
-                     for (int k=0; k<6; k++ ) {
-                         histo3->Fill_l(rsd_Rdphi[k],rsd_RdphiWth[k],rht_y[k]);
+                   histo1 = hChamber2[dmap[1]];
+                   if ( nu_1ch_rh == 0 ){
+                     histo1->Fill_f(resid_X[0],resid_X[1],resid_X[2],resid_X[3],resid_X[4],resid_X[5],SKrsduWth[0],SKrsduWth[1],SKrsduWth[2],SKrsduWth[3],SKrsduWth[4],SKrsduWth[5]);
+                     histo1->Fill_1(resid_RdfWth[0],resid_RdfWth[1],resid_RdfWth[2],resid_RdfWth[3],resid_RdfWth[4],resid_RdfWth[5],resid_Rdf[0],resid_Rdf[1],resid_Rdf[2],resid_Rdf[3],resid_Rdf[4],resid_Rdf[5]);
+                     histo1->Fill_2(pull[0],pull[1],pull[2],pull[3],pull[4],pull[5]);
+                     histo1->Fill_3(resid_Y[0],resid_Y[1],resid_Y[2],resid_Y[3],resid_Y[4],resid_Y[5]);
+                     if (rh_type[3]==false) {   
+                         histo1->Fill_4_3(resid_Rdf[3],resid_RdfWth[3],rht_y[3]);
+                         if (rh_side){
+                             histo1->Fill_4_3P(resid_RdfWth[3]);
+                         }
+                         if (!rh_side) {
+                             histo1->Fill_4_3N(resid_RdfWth[3]);
+                         }
                      }
+                     if (rh_type[3]==true) {   
+                         histo1->Fill_4a_3(resid_Rdf[3],resid_RdfWth[3],rht_y[3]);
+                     }
+                     histo1->Fill_4b(resid_Rdf[0],rht_y[0],resid_Rdf[1],rht_y[1],resid_Rdf[2],rht_y[2],resid_Rdf[3],rht_y[3],resid_Rdf[4],rht_y[4],resid_Rdf[5],rht_y[5]);
+                     for (int k=0; k<6; k++ ) {
+                         histo1->Fill_4c(resid_Rdf[k],resid_RdfWth[k],rht_y[k],XFit[k],XRec[k]);
+                     }
+                   }
+                    if (CFEB_flag <=6 && (CFEB_nu==1) ) {
+                       histo1->Fill_5(pull[CFEB_flag-1],resid_Rdf[CFEB_flag-1],CFEB_flag,xRecErr[CFEB_flag-1],slx1);
+                       histo1->Fill_6(pull[6-CFEB_flag],resid_Rdf[6-CFEB_flag],CFEB_flag);
+                    }
                   }
             }
          }
-         //!! end of histograms filling
 
       }
 
 
-     // Begin loop histograms for all types of chambers
+     // Looping histograms for all types of chambers
      int cbt_i=0;
      for (int st = 1; st < 5; st++){
           for (int rg = 1; rg < 5; rg++ ) {
           if ((rg==3 && st!=1) || (rg==2 && st==4))
           break;
               if ( (idc.station() == st) && (idc.ring() == rg) ){
+                 //Fill the basic information of segments
                  histo = hRHPME[cbt_i];
-                 histo->Fill_c(xorgc,yorgc,X2c,nhitsc,slx1,sly1);
+                 histo->Fill_a(xorgc,yorgc,X2c,nhitsc,slx1,sly1,nu_1ch_rh);
+                 // Fill the statistics of segment#/chamber in each event 
                  if (seg_count1){ 
-                    histo->Fill_a(nu_seg1);
+                    histo->Fill_b(nu_seg1);
                     nu_seg1=1;
                     seg_count1=false;
                  }
+                 // Fill the error information
+                 // err1[]    -> SK fitting error for 6 hits segments
+                 // xRecErr[] -> local position error of rechit
+                 // xFitErr[] -> local position error from 5 hits fitting
                  if ((nhitsc ==6) && (!no_gatti) && (!wrong_rh_err) && (!y_edge)) {
-                    histo->Fill_g(err1[0],err1[1],err1[2],err1[3],X2c,xRecErr[0],xRecErr[2],xRecErr[4],xFitErr[0] ,xFitErr[2],xFitErr[4]);
+                    histo->Fill_c(err1[0],err1[1],err1[2],err1[3],X2c,xRecErr[0],xRecErr[2],xRecErr[4],xFitErr[0] ,xFitErr[2],xFitErr[4]);
+                    // Fill the residual information with some parameters 
                     for (int k = 0; k < 6; k++) {
-                        histo->Fill_e(rsd_a[k],SKrsdu[k],SKrsduWth[k],rsd_Rdphi[k],xPull[k],X2c,slx1,sly1,xRecErr[k],dx_a[k],rht_y[k],rht_ch[k]);
-                        //if (k==2){
-                           if (rh_type[k]==true){
-                              histo->Fill_h(SKrsduWth[k],rht_y[k]);
+                        histo->Fill_d(resid_X[k],SKrsdu[k],resid_RdfWth[k],resid_Rdf[k],pull[k],X2c,slx1,sly1,xRecErr[k],dx_a[k],rht_y[k],rht_ch[k],wire_group[k],RecX2[k]);
+                    }
+                    // look at the Rdphi residual of strip centre or strip edge vs local y
+                    if ( (fabs(slx1) < maxdxdz) && (fabs(sly1)< maxdydz) && (sly1<0.5)){    
+                           // hits around strip centre
+                           if ( (rh_type[3]==true)&&( nu_1ch_rh == 0) ) {   
+                              histo->Fill_h(resid_Rdf[3],rht_y[3]);
+                           }
+                           // hits at strip edge 
+                           if ( (rh_type[3]==false)&&( nu_1ch_rh == 0) ) {   
+                              histo->Fill_k(resid_Rdf[3],rht_y[3]);
                            } 
-                           if (rh_type[k]==false){
-                              histo->Fill_k(SKrsduWth[k],rht_y[k]);
-                           } 
-                        //}
                     }
                  } 
               }
@@ -528,16 +481,197 @@ void CSCMTCCAnalysis::analyze(const Event & event, const EventSetup& eventSetup)
   }
   // End of Segment loop
 }
+// *******************************
+// *****  Utility Functions  *****
+// *******************************
+
+// number of Segment / chamber
+void CSCMTCCAnalysis::segment_chamber( CSCDetId det_id ) {
+      
+      if (nu_seg1 == 0){ 
+         nu_seg1 = 1;
+         DetNu[0] = det_id.endcap();
+         DetNu[1] = det_id.station();
+         DetNu[2] = det_id.ring();
+         DetNu[3] = det_id.chamber();
+      } 
+      else if ( (det_id.endcap() == DetNu[0]) && (det_id.ring() == DetNu[2]) && (det_id.station() == DetNu[1]) && (det_id.chamber() == DetNu[3]) ) {
+              nu_seg1 = nu_seg1 + 1;
+      }
+      else { 
+         seg_count1 = true;       
+         DetNu[0] = det_id.endcap();
+         DetNu[1] = det_id.station();
+         DetNu[2] = det_id.ring();
+         DetNu[3] = det_id.chamber();
+      }
+
+}
+
+// rotation x(local coordinate) -> u(strip coordinate)
+void CSCMTCCAnalysis::rotation(const CSCSegment* seg, LocalPoint fit_p[6], ESHandle<CSCGeometry> cscGeom){
+
+     const std::vector<CSCRecHit2D>& rh = (seg->specificRecHits());
+     for (std::vector<CSCRecHit2D>::const_iterator rh_it = rh.begin(); rh_it != rh.end(); ++rh_it) 
+     {
+         // get the rotation angle
+         CSCDetId det_id = (CSCDetId)(*rh_it).cscDetId();
+         int it = det_id.layer()-1; 
+         LocalPoint rh_p = (*rh_it).localPosition();
+         LocalError rh_err = (*rh_it).localPositionError(); 
+         double ang = 0.5*atan( 2.*rh_err.xy()/(rh_err.xx()-rh_err.yy()) ); 
+
+         // rotate dx to du; x residual in strip-coordinate => shoulb be equivalent to Rdphi residual
+         rh_u[it] = rh_p.x()*cos(ang)+rh_p.y()*sin(ang);
+         fit_u[it]= (fit_p[it]).x()*cos(ang)+(fit_p[it]).y()*sin(ang); 
+     }
+}
+
+//hit information - in-strip / inter-strip
+void CSCMTCCAnalysis::hit_info(LocalPoint rh_p, CSCDetId det_id, ESHandle<CSCGeometry> cscGeom){
+
+     const CSCLayer* csclayer_1 = cscGeom->layer( det_id );
+     int   hit_ch = (csclayer_1->geometry())->nearestStrip( rh_p );
+     strip_x = (csclayer_1->geometry())->xOfStrip(hit_ch,rh_p.y());
+     double strip_Wth = (csclayer_1->geometry())->stripPitch(rh_p);
+     double strip_Ang = (csclayer_1->geometry())->stripAngle(hit_ch);
+     // hits belong to inter-strip or in-strip 
+     rh_type_i = ( fabs(rh_p.x() - strip_x) <= fabs(0.25*strip_Wth/sin(strip_Ang)) ? true : false );
+     rh_side_i = ( (rh_p.x() >  strip_x ) ? true : false );
+}
+
+// residual calculation
+void CSCMTCCAnalysis::residual(const CSCSegment* seg, ESHandle<CSCGeometry> cscGeom){
+
+     int nu_hits = seg->nRecHits();
+     double fit5hits_X[6]={999.0};
+     double rec_local_X[6]={99.0};
+     double fit5hits_Y[6]={999.0};
+     double rec_local_Y[6]={99.0};
+     double delta_z[6]={0.0};
+     double global_R[6]={999.0};
+     double rh_phi[6]={999.0};
+     double stripWth[6];
+
+     for (int it = 0; it < nu_hits; it++){
+         rh_Vec.clear();
+         resid_X[it]=999.0;
+         resid_Y[it]=999.0;
+         resid_Rdf[it]=999.0;
+         resid_RdfWth[it]=999.0;
+         const std::vector<CSCRecHit2D>& rh = (seg->specificRecHits());
+         for (std::vector<CSCRecHit2D>::const_iterator rh_it = rh.begin(); rh_it != rh.end(); ++rh_it) 
+         { 
+             CSCDetId det_id = (CSCDetId)(*rh_it).cscDetId();
+             if ( (det_id.layer()-1) != it ) {
+                rh_Vec.push_back(*rh_it);
+             }
+
+             // get the local z position: using CSClayer transfer Local XY -> Global XYZ
+             //                      then using CSCChamber transfer Global XYZ -> Local XYZ
+             LocalPoint rh_xyz = (*rh_it).localPosition();
+             const CSCLayer* csclayer = cscGeom->layer( det_id );
+             const CSCChamber* cscchamber = cscGeom->chamber( det_id );
+             GlobalPoint rh_Gxyz = csclayer->toGlobal(rh_xyz);
+             LocalPoint rh_Lxyz = cscchamber->toLocal(rh_Gxyz);
+             if ( (det_id.layer()-1) == it ) {
+                rec_local_X[it]=rh_xyz.x();
+                rec_local_Y[it]=rh_xyz.y();
+                delta_z[it]=rh_Lxyz.z();
+
+                global_R[it] = sqrt( (rh_Gxyz.x()*rh_Gxyz.x()) + (rh_Gxyz.y()*rh_Gxyz.y()) );
+                rh_phi[it] = rh_Gxyz.phi();
+                det_fit[it] = (CSCDetId)(*rh_it).cscDetId();
+
+                stripWth[it] = (csclayer->geometry())->stripPitch(rh_xyz);
+                cont[it]=stripWth[it];
+
+                rhit_cont[it]=rh_xyz;
+                xRecErr[it]=((*rh_it).localPositionError()).xx();
+
+                int wire_nu = (csclayer->geometry())->nearestWire(rh_xyz);
+                wire_group[it] = (csclayer->geometry())->wireGroup(wire_nu);
+             }
+             
+
+         }
+         SKFitSlope(cscGeom,rh_Vec.size(),rh_Vec);
+         fit5hits_X[it] = (SKFit[2]*delta_z[it]) + SKFit[0];
+         fit5hits_Y[it] = (SKFit[3]*delta_z[it]) + SKFit[1];
+         LocalPoint fit5hits = LocalPoint(fit5hits_X[it], fit5hits_Y[it], 0.);
+         const CSCLayer* csclayer_fit = cscGeom->layer( det_fit[it] );
+         GlobalPoint gfit5hits = csclayer_fit->toGlobal(fit5hits);
+
+         fhit_cont[it] = fit5hits;
+         xFitErr[it] = SKErr[0] + (SKErr[2]*delta_z[it]*delta_z[it]) +(2.0*delta_z[it]*SKErr[4]);
+
+         resid_X[it]= rec_local_X[it]-fit5hits_X[it]; 
+         resid_Y[it]= rec_local_Y[it]-fit5hits_Y[it]; 
+   
+         resid_Rdf[it] = global_R[it]*sin( rh_phi[it] - gfit5hits.phi() );
+         resid_RdfWth[it] = resid_Rdf[it]/stripWth[it];
+     }
+}
+
+
+// xpull calculation
+void CSCMTCCAnalysis::x_pull(const CSCSegment* seg, ESHandle<CSCGeometry> cscGeom){
+
+     LocalVector vec = seg->localDirection();
+     LocalPoint seg_org = seg->localPosition();
+     //LocalError o_err = seg->localPositionError();
+     //LocalError v_err = seg->localDirectionError();
+
+     double slx = vec.x() / vec.z();
+
+     for (int k=0; k<6; k++){
+         pull[k]=99.0;
+     }
+
+     const std::vector<CSCRecHit2D>& rh = (seg->specificRecHits());
+     for (std::vector<CSCRecHit2D>::const_iterator rh_it = rh.begin(); rh_it != rh.end(); ++rh_it) { 
+
+         CSCDetId det_id = (CSCDetId)(*rh_it).cscDetId();
+         LocalPoint rh_xyz = (*rh_it).localPosition();
+         LocalError rh_err = (*rh_it).localPositionError();
+         int j = det_id.layer()-1;
+
+         // get the local z position: using CSClayer transfer Local XY -> Global XYZ
+         //                      then using CSCChamber transfer Global XYZ -> Local XYZ
+         const CSCLayer* csclayer = cscGeom->layer( det_id );
+         const CSCChamber* cscchamber = cscGeom->chamber( det_id );
+         GlobalPoint rh_Gxyz = csclayer->toGlobal(rh_xyz);
+         LocalPoint rh_Lxyz = cscchamber->toLocal(rh_Gxyz);
+
+         // Fitting position x = az + b
+         double fit_x = ( slx*rh_Lxyz.z() ) + seg_org.x();
+         //double fit_err =  SKErr[0] + (rh_Lxyz.z()*rh_Lxyz.z()*SKErr[2]) + (2.0*rh_Lxyz.z()*SKErr[4]);
+         double fit_err =  SKErr[0] + (rh_Lxyz.z()*rh_Lxyz.z()*SKErr[2]) ;
+         //double fit_err =  o_err.xx() + (rh_Lxyz.z()*rh_Lxyz.z()*v_err.xx()) + (2.0*rh_Lxyz.z()*SKErr[4]);
+
+         // x pull = dx / sqrt(rh_err.x() - fit_err.x() )
+         if (rh_err.xx()-fit_err < 0.0) continue;
+         pull[j] = (rh_Lxyz.x() - fit_x) / sqrt(rh_err.xx()-fit_err);
+
+         /*cout <<"pull"<<j<<" = "<<pull[j] << endl;
+         cout <<"sk0= "<<SKErr[0] <<" sk2= "<<SKErr[2]<<"  sk4= "<<SKErr[4]<<endl;
+         cout <<"o_err= "<<o_err.xx() <<" v_err= "<<v_err.xx()<<endl;
+         cout <<"              dx =         "<< rh_Lxyz.x() - fit_x << endl;
+         cout <<"sqrt(rh_err.xx()-fit_err)= "<< sqrt(rh_err.xx()-fit_err) << endl;*/
+     }    
+
+}
+
 
 // Segment fitting from SK Algorithm
-void CSCMTCCAnalysis::SKFitSlope(ESHandle<CSCGeometry> cscGeom, int rechit_size){
+void CSCMTCCAnalysis::SKFitSlope(ESHandle<CSCGeometry> cscGeom, int rechit_size, std::vector<CSCRecHit2D> rh_V00){
  
       HepMatrix M1(4,4,0);
       HepVector B1(4,0);
       HepMatrix Dmatrix1(rechit_size*2, 4);
       AlgebraicSymMatrix Wmatrix1(rechit_size*2, 0);
       int row1 = 0;
-      for (std::vector<CSCRecHit2D>::const_iterator rh_i0 = rh_V0.begin(); rh_i0!=rh_V0.end(); ++rh_i0)
+      for (std::vector<CSCRecHit2D>::const_iterator rh_i0 = rh_V00.begin(); rh_i0!=rh_V00.end(); ++rh_i0)
       { 
           CSCDetId idr0 = (CSCDetId)(*rh_i0).cscDetId();
           LocalPoint rh0_xyz = (*rh_i0).localPosition();
@@ -598,23 +732,23 @@ void CSCMTCCAnalysis::SKFitSlope(ESHandle<CSCGeometry> cscGeom, int rechit_size)
       }
       // Solve the matrix equation using CLHEP's 'solve'
       HepVector p1 = solve(M1, B1);
-      SKFit[0] = p1(1);   // org_x
-      SKFit[1] = p1(2);   // org_y
-      SKFit[2] = p1(3);   // slope x
-      SKFit[3] = p1(4);   // slope y
+      SKFit[0] = p1(1);   // origin of x
+      SKFit[1] = p1(2);   // origin of y
+      SKFit[2] = p1(3);   // slope of x
+      SKFit[3] = p1(4);   // slope of y
       // Solve the fitting errors
       int ierr=0;
       Wmatrix1.invert(ierr);
       AlgebraicSymMatrix Ematrix1 = Wmatrix1.similarityT(Dmatrix1);
       Ematrix1.invert(ierr);
       AlgebraicSymMatrix SKfitErr1 = Ematrix1;
-      SKErr[0] = SKfitErr1[0][0];  // org_err.xx
-      SKErr[1] = SKfitErr1[1][1];  // org_err.yy 
-      SKErr[2] = SKfitErr1[2][2];  // slp_err.xx
-      SKErr[3] = SKfitErr1[3][3];  // slp_err.yy
-      SKErr[4] = SKfitErr1[0][2];  // org_slp_err.xx
-      SKErr[5] = SKfitErr1[1][3];  // org_slp_err.yy
+      SKErr[0] = SKfitErr1[0][0];  // error of origin; xx
+      SKErr[1] = SKfitErr1[1][1];  // error of origin; yy 
+      SKErr[2] = SKfitErr1[2][2];  // error of slope; xx
+      SKErr[3] = SKfitErr1[3][3];  // error of slope; yy
+      SKErr[4] = SKfitErr1[0][2];  // error of origin-slope; xx
+      SKErr[5] = SKfitErr1[1][3];  // error of origin-slope; yy
 
 }
 
-DEFINE_FWK_MODULE(CSCMTCCAnalysis);
+DEFINE_FWK_MODULE(CSCMTCCAnalysis)
