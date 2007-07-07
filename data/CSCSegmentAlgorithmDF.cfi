@@ -14,7 +14,7 @@ block DF_ME1234_1 = {
     untracked double tanPhiMax              = 0.5
 
     # Parameters for pre-clustering
-    untracked bool   preClustering          = false
+    untracked bool   preClustering          = true
     untracked double dXclusBoxMax           = 4.0
     untracked double dYclusBoxMax           = 8.0
     # Parameters for bad hit pruning
@@ -33,7 +33,7 @@ block DF_ME1234_2 = {
     untracked double tanPhiMax              = 0.8
 
     # Parameters for pre-clustering
-    untracked bool   preClustering          = false
+    untracked bool   preClustering          = true
     untracked double dXclusBoxMax           = 4.0
     untracked double dYclusBoxMax           = 8.0
     # Parameters for bad hit pruning
@@ -46,14 +46,14 @@ block DF_ME1A = {
     untracked bool CSCSegmentDebug          = false
     untracked double nSigmaFromSegment      = 5.
     untracked int32 minHitsPerSegment       = 3
-    untracked double dRPhiFineMax           = 3.0
-    untracked double dPhiFineMax            = 0.013
+    untracked double dRPhiFineMax           = 6.0
+    untracked double dPhiFineMax            = 0.025
     untracked int32 minLayersApart          = 2
     untracked double tanThetaMax            = 1.2
     untracked double tanPhiMax              = 0.5
 
     # Parameters for pre-clustering
-    untracked bool   preClustering          = false
+    untracked bool   preClustering          = true
     untracked double dXclusBoxMax           = 4.0
     untracked double dYclusBoxMax           = 8.0
     # Parameters for bad hit pruning
