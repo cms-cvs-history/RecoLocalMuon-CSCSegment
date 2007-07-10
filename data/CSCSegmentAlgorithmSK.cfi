@@ -5,11 +5,11 @@ block SK_ME1234 = {
 
     untracked bool verboseInfo = true
 	
-    double dRPhiMax = 1.2
+    double dRPhiMax = 8.0
     double dPhiMax = 3.e-3
-    double dRPhiFineMax = 6.0
-    double dPhiFineMax = 200.e-4
-    double chi2Max = 6000.  		# was 20. pre ORCA_8_10_x
+    double dRPhiFineMax = 8.0
+    double dPhiFineMax = 250.e-4
+    double chi2Max = 99999.  		# was 20. pre ORCA_8_10_x
     double wideSeg = 3.   		# 2nd pass with x3 windows for association
     int32 minLayersApart = 2
 }
@@ -18,11 +18,11 @@ block SK_ME1A = {
 
     untracked bool verboseInfo = true
 		
-    double dRPhiMax = 0.6		# 2x less than other chambers
-    double dPhiMax = 1.98e-3	        # 1.5x less than other chambers
+    double dRPhiMax = 8.0		# 2x less than other chambers
+    double dPhiMax = 250.e-4	        # 1.5x less than other chambers
     double dRPhiFineMax = 3.0	        # 2x less than other chambers
-    double dPhiFineMax = 130.e-4	# 1.5x less than other chambers
-    double chi2Max = 6000.  		# was 20. pre ORCA_8_10_x
+    double dPhiFineMax = 250.e-4	# 1.5x less than other chambers
+    double chi2Max = 99999.  		# was 20. pre ORCA_8_10_x
     double wideSeg = 3.   		# 2nd pass with x3 windows for association
     int32 minLayersApart = 2
 }
