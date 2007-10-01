@@ -11,7 +11,7 @@ block DF_ME1234_1 = {
     int32  minLayersApart         = 2
     double tanThetaMax            = 1.2
     double tanPhiMax              = 0.5
-    double chi2Max                = 100.
+    double chi2Max                = 2000.
 
     # Parameters for pre-clustering
     untracked bool   preClustering          = false
@@ -30,7 +30,7 @@ block DF_ME1234_2 = {
     int32  minLayersApart         = 2
     double tanThetaMax            = 2.
     double tanPhiMax              = 0.8
-    double chi2Max                = 100.
+    double chi2Max                = 2000.
 
     # Parameters for pre-clustering
     untracked bool   preClustering          = false
@@ -50,7 +50,7 @@ block DF_ME1A = {
     int32 minLayersApart          = 2
     double tanThetaMax            = 1.2
     double tanPhiMax              = 0.5
-    double chi2Max                = 100.
+    double chi2Max                = 2000.
 
     # Parameters for pre-clustering
     untracked bool   preClustering          = false
