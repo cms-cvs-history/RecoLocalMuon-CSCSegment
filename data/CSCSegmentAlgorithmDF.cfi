@@ -17,6 +17,8 @@ block DF_ME1234_1 = {
     untracked bool   preClustering          = false
     double dXclusBoxMax           = 4.0
     double dYclusBoxMax           = 8.0
+    int32 minHitsForPreClustering = 20
+    int32 nHitsPerClusterIsShower = 30
     # Parameters for bad hit pruning
     untracked bool   Pruning                = false
     untracked bool   BrutePruning           = false
@@ -36,6 +38,8 @@ block DF_ME1234_2 = {
     untracked bool   preClustering          = false
     double dXclusBoxMax           = 4.0
     double dYclusBoxMax           = 8.0
+    int32 minHitsForPreClustering = 20
+    int32 nHitsPerClusterIsShower = 30
     # Parameters for bad hit pruning
     untracked bool   Pruning                = false
     untracked bool   BrutePruning           = false
@@ -56,6 +60,8 @@ block DF_ME1A = {
     untracked bool   preClustering          = false
     double dXclusBoxMax           = 4.0
     double dYclusBoxMax           = 6.0
+    int32 minHitsForPreClustering = 60
+    int32 nHitsPerClusterIsShower = 30
     # Parameters for bad hit pruning
     untracked bool   Pruning                = false
     untracked bool   BrutePruning           = false
