@@ -5,17 +5,18 @@
  *  Basic analyzer class which accesses CSCSegment
  *  and plot efficiency of the builder
  *
- *  $Date: 2007/07/26 00:52:09 $
- *  $Revision: 1.7 $
+ *  $Date: 2006/06/01 08:44:02 $
+ *  $Revision: 1.3 $
  *  \author M. Sani
  */
 
 #include <FWCore/Framework/interface/Event.h>
 #include <FWCore/Framework/interface/EventSetup.h>
+#include <FWCore/Framework/interface/ESHandle.h>
 #include <FWCore/Framework/interface/EDAnalyzer.h>
 #include <FWCore/Framework/interface/ESHandle.h>
 #include <FWCore/Framework/interface/Frameworkfwd.h>
-#include <DataFormats/Common/interface/Handle.h>
+#include <FWCore/Framework/interface/Handle.h>
 #include <FWCore/MessageLogger/interface/MessageLogger.h> 
 
 #include <SimDataFormats/Track/interface/SimTrackContainer.h>
@@ -61,26 +62,16 @@ protected:
 private: 
 
     std::string filename;
-    TH1F *heff0, *heff1, *heff2, *heff3, *hchi2, *hpt, *heta, *hx, *hy;
-    TH1I *hrechit, *hsegment;
-    TH1F *hphiDir[9], *hthetaDir[9];
-    TH1F *hdxOri[9], *hdyOri[9];
+    TH1F* heff, *hchi2, *hpt, *heta, *hx, *hy;
+    TH1I* hrechit, *hsegment;
+    TH1F* hphi[4], *htheta[4];
     
     TFile* file;  
-    std::map<std::string, int> segMap1;
-    std::map<std::string, int> segMap2;
-    std::map<std::string, int> segMap3;
-    std::map<std::string, int> chaMap1;
-    std::map<std::string, int> chaMap2;
-    std::map<std::string, int> chaMap3;
-    int minLayerWithRechitChamber;
-    int minRechitSegment;
-    int minLayerWithSimhitChamber;
+    std::map<std::string, int> segMap;
+    std::map<std::string, int> chaMap;
+    int minRechitChamber, minRechitSegment;
     double maxPhi, maxTheta;
     int simhit;
-    int maxNhits;
-    int n6hitSegmentMC[9];
-    int n6hitSegmentReco[9];
     int near_segment;
 };
 

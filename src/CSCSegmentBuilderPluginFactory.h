@@ -4,17 +4,26 @@
 /** \class CSCSegmentBuilderPluginFactory
  *  Plugin factory for concrete CSCSegmentBuilder algorithms
  *
- * $Date: 2007/03/08 14:46:20 $
- * $Revision: 1.4 $
+ * $Date: 2006/04/03 10:10:10 $
+ * $Revision: 1.2 $
  * \author M. Sani
  * 
  */
 
-#include <FWCore/PluginManager/interface/PluginFactory.h>
+#include <PluginManager/PluginFactory.h>
 #include <RecoLocalMuon/CSCSegment/src/CSCSegmentAlgorithm.h>
 
 class edm::ParameterSet;
 
-typedef edmplugin::PluginFactory<CSCSegmentAlgorithm *(const edm::ParameterSet&)> CSCSegmentBuilderPluginFactory;
+class CSCSegmentBuilderPluginFactory : public seal::PluginFactory<CSCSegmentAlgorithm *(const edm::ParameterSet&)>{
+public:
+    /// Constructor
+    CSCSegmentBuilderPluginFactory();
+    
+    static CSCSegmentBuilderPluginFactory* get (void);
 
+private:
+
+    static CSCSegmentBuilderPluginFactory s_instance;
+};
 #endif

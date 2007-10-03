@@ -1,25 +1,10 @@
 <use name=DataFormats/CSCRecHit>
-<use name=Geometry/CSCGeometry>
-<use name=Geometry/Records>
+<use name=RecoLocalMuon/CSCSegment>
 <use name=FWCore/Framework>
 <use name=FWCore/ParameterSet>
 <use name=SimDataFormats/Track>
 <use name=root>
 
 <library file=CSCSegmentReader.cc name=testCSCSegReader>
-   <flags EDM_PLUGIN=1>
+   <flags SEAL_PLUGIN_NAME="testCSCSegReader">
 </library>
-
-<library file=CSCSegmentVisualise.cc name=CSCSegmentVisualise>
-   <flags EDM_PLUGIN=1>
-</library>
-
-<library file=MTCCAnalysis/CSCMTCCAnalysis.cc name=CSCMTCCAnalysis>
-   <flags EDM_PLUGIN=1>
-</library>
-
-<library file=MTCCAnalysis/CSCMTCCOverlap.cc name=CSCMTCCOverlap>
-   <flags EDM_PLUGIN=1>
-</library>
-
-
