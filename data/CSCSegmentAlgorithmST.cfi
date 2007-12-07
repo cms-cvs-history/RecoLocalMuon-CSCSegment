@@ -18,6 +18,18 @@ block ST_ME1234 = {
 # to enable BrutePruning set both Pruning and BrutePruning to true
     untracked bool   BrutePruning             = false
     untracked bool   onlyBestSegment          = false
+
+    untracked double hitDropLimit4Hits             = 0.03125
+    untracked double hitDropLimit5Hits             = 0.06250
+    untracked double hitDropLimit6Hits             = 0.12500
+
+# the next two parameters are scales applied to the actual 
+# hardcoded values
+    untracked double yweightPenaltyThreshold       = 1.0
+    untracked double yweightPenalty                = 1.5
+
+    untracked double curvePenaltyThreshold         = 0.85
+    untracked double curvePenalty                  = 2.0
 }
 
 block ST_ME1A = {
@@ -35,6 +47,18 @@ block ST_ME1A = {
     untracked bool   Pruning                  = false
     untracked bool   BrutePruning             = false
     untracked bool   onlyBestSegment          = false
+
+    untracked double hitDropLimit4Hits             = 0.03125
+    untracked double hitDropLimit5Hits             = 0.06250
+    untracked double hitDropLimit6Hits             = 0.12500
+
+# the next two parameters are scales applied to the actual 
+# hardcoded values
+    untracked double yweightPenaltyThreshold       = 1.0
+    untracked double yweightPenalty                = 1.5
+
+    untracked double curvePenaltyThreshold         = 0.85
+    untracked double curvePenalty                  = 2.0
 }
 
 block CSCSegAlgoST = {
