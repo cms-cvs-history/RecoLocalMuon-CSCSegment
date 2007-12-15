@@ -21,7 +21,7 @@ block DF_ME1234_1 = {
     int32 nHitsPerClusterIsShower = 20
     # Parameters for bad hit pruning
     untracked bool   Pruning                = false
-    untracked bool   BrutePruning           = false
+    double maxRatioResidualPrune  = 3
 }
 
 block DF_ME1234_2 = {
@@ -42,8 +42,7 @@ block DF_ME1234_2 = {
     int32 nHitsPerClusterIsShower = 20
     # Parameters for bad hit pruning
     untracked bool   Pruning                = false
-    untracked bool   BrutePruning           = false
-
+    double maxRatioResidualPrune  = 3
 }
 
 block DF_ME1A = {
@@ -64,7 +63,7 @@ block DF_ME1A = {
     int32 nHitsPerClusterIsShower = 20
     # Parameters for bad hit pruning
     untracked bool   Pruning                = false
-    untracked bool   BrutePruning           = false
+    double maxRatioResidualPrune  = 3
 }
 
 block CSCSegAlgoDF = {
