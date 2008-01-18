@@ -72,7 +72,7 @@ block CSCSegAlgoDF = {
         {using DF_ME1234_1},{using DF_ME1234_2}, {using DF_ME1A}
     }
 		
-    # chamber_list ME1/a, ME1/b, ME1/2, ME1/3, ME2/1, ME2/2, ME3/1, ME3/2, ME4/1
+    vstring chamber_types = {"ME1/a", "ME1/b", "ME1/2", "ME1/3", "ME2/1", "ME2/2", "ME3/1", "ME3/2", "ME4/1"}
     vint32 parameters_per_chamber_type = {3, 1, 2, 2, 1, 2, 1, 2, 1}   
 
     string algo_name = "CSCSegAlgoDF"
