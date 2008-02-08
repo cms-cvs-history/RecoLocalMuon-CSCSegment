@@ -41,7 +41,7 @@ block ST_ME1A = {
 #  This cut is intended to remove messy events. Currently nothing is returned if there are
 #  more that maxRecHitsInCluster hits. It could be useful to return an estimate of the 
 #  cluster position, which is available.
-    untracked int32  maxRecHitsInCluster      = 20
+    untracked int32  maxRecHitsInCluster      = 24
     untracked bool   preClustering            = true
 # to enable BrutePruning set both Pruning and BrutePruning to true
     untracked bool   Pruning                  = false
