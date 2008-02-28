@@ -12,7 +12,7 @@ module cscSegments = CSCSegmentProducer {
     InputTag inputObjects = csc2DRecHits
     
     # Choice of the building algo: 1 SK, 2 TC, 3 DF, 4 ST, ...
-    int32 algo_type = 3
+    int32 algo_type = 4
 
     # std::vector<edm::ParameterSet>
     VPSet algo_psets = {
