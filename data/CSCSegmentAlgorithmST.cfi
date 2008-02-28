@@ -19,9 +19,14 @@ block ST_ME1234 = {
     untracked bool   BrutePruning             = false
     untracked bool   onlyBestSegment          = false
 
-    untracked double hitDropLimit4Hits             = 0.03125
-    untracked double hitDropLimit5Hits             = 0.06250
-    untracked double hitDropLimit6Hits             = 0.12500
+## hitdroplimits to be used with cvs v1.4 and earlier version of the ST
+#    untracked double hitDropLimit4Hits             = 0.03125
+#    untracked double hitDropLimit5Hits             = 0.06250
+#    untracked double hitDropLimit6Hits             = 0.12500
+# hitdroplimits to be used with cvs v1.5 and higher version of the ST
+    untracked double hitDropLimit4Hits             = 0.6000
+    untracked double hitDropLimit5Hits             = 0.8000
+    untracked double hitDropLimit6Hits             = 0.3333
 
 # the next two parameters are scales applied to the actual 
 # hardcoded values
@@ -48,9 +53,14 @@ block ST_ME1A = {
     untracked bool   BrutePruning             = false
     untracked bool   onlyBestSegment          = false
 
-    untracked double hitDropLimit4Hits             = 0.03125
-    untracked double hitDropLimit5Hits             = 0.06250
-    untracked double hitDropLimit6Hits             = 0.12500
+## hitdroplimits to be used with cvs v1.4 and earlier version of the ST
+#    untracked double hitDropLimit4Hits             = 0.03125
+#    untracked double hitDropLimit5Hits             = 0.06250
+#    untracked double hitDropLimit6Hits             = 0.12500
+# hitdroplimits to be used with cvs v1.5 and higher version of the ST
+    untracked double hitDropLimit4Hits             = 0.6000
+    untracked double hitDropLimit5Hits             = 0.8000
+    untracked double hitDropLimit6Hits             = 0.3333
 
 # the next two parameters are scales applied to the actual 
 # hardcoded values
