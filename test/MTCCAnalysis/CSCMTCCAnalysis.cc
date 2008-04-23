@@ -37,17 +37,14 @@
 #include <stdio.h>
 #include <algorithm>
 
-using namespace std;
-using namespace edm;
-
 // Constructor
-CSCMTCCAnalysis::CSCMTCCAnalysis(const ParameterSet& pset){
+CSCMTCCAnalysis::CSCMTCCAnalysis(const edm::ParameterSet& pset){
 
   // Get the various input parameters
   debug               = pset.getUntrackedParameter<bool>("debug");
-  rootFileName        = pset.getUntrackedParameter<string>("rootFileName");
-  recHitLabel         = pset.getUntrackedParameter<string>("recHitLabel");
-  cscSegmentLabel     = pset.getUntrackedParameter<string>("cscSegmentLabel");
+  rootFileName        = pset.getUntrackedParameter<std::string>("rootFileName");
+  recHitLabel         = pset.getUntrackedParameter<std::string>("recHitLabel");
+  cscSegmentLabel     = pset.getUntrackedParameter<std::string>("cscSegmentLabel");
   maxdxdz             = pset.getUntrackedParameter<double>("maxSlopedxdz");
   maxdydz             = pset.getUntrackedParameter<double>("maxSlopedydz");
   x_margin_L          = pset.getUntrackedParameter<int>("x_margin_L");
@@ -55,7 +52,7 @@ CSCMTCCAnalysis::CSCMTCCAnalysis(const ParameterSet& pset){
   y_margin_T          = pset.getUntrackedParameter<double>("y_margin_T");
   y_margin_B          = pset.getUntrackedParameter<double>("y_margin_B");
 
-  if(debug) cout << "[CSCMTCCAnalysis] Constructor called" << endl;
+  if(debug) std::cout << "[CSCMTCCAnalysis] Constructor called" << std::endl;
  
   FILE *mapfile;
   mapfile = fopen("CSCMTCC_MAP.txt","w+t");  
@@ -76,7 +73,7 @@ CSCMTCCAnalysis::CSCMTCCAnalysis(const ParameterSet& pset){
           break;
           sprintf(dets,"ME_%d_%d",st,rg);
           hRHPME[cb_i0]  = new H2DRecHit(dets);
-          cout <<"hDet_" <<cb_i0 << " = " << dets << endl;
+          std::cout <<"hDet_" <<cb_i0 << " = " << dets << std::endl;
           cb_i0++;
       }
   }
@@ -91,7 +88,7 @@ CSCMTCCAnalysis::CSCMTCCAnalysis(const ParameterSet& pset){
              for (int cb = 14; cb < 17; cb++){
                  sprintf(det_str,"ME_%d_%d_%d",st,rg,cb);
                  hChamber1[cb_i1]  = new H2DRecHit1(det_str);
-                 cout <<"hchamber1_" <<cb_i1 << " = " << det_str << endl;
+                 std::cout <<"hchamber1_" <<cb_i1 << " = " << det_str << std::endl;
                  fprintf (mapfile, "1 %d %d %d %d\n",cb_i1,st,rg,cb);
                  cb_i1++;
              }
@@ -102,7 +99,7 @@ CSCMTCCAnalysis::CSCMTCCAnalysis(const ParameterSet& pset){
              for (int cb = 27; cb < 33; cb++) {
                  sprintf(det_str,"ME_%d_%d_%d",st,rg,cb);
                  hChamber2[cb_i2]  = new H2DRecHit1(det_str);
-                 cout <<"hchamber2_" <<cb_i2 << " = " << det_str << endl;
+                 std::cout <<"hchamber2_" <<cb_i2 << " = " << det_str << std::endl;
                  fprintf (mapfile, "2 %d %d %d %d\n",cb_i2,st,rg,cb);
                  cb_i2++;
              }
@@ -117,7 +114,7 @@ CSCMTCCAnalysis::CSCMTCCAnalysis(const ParameterSet& pset){
 // Destructor
 CSCMTCCAnalysis::~CSCMTCCAnalysis(){
   
-  if (debug) cout << "[CSCMTCCAnalysis] Destructor called" << endl;
+  if (debug) std::cout << "[CSCMTCCAnalysis] Destructor called" << std::endl;
   // Write the histos to file
   theFile->cd();
   //hRHPMEa ->Write();
@@ -144,29 +141,29 @@ CSCMTCCAnalysis::~CSCMTCCAnalysis(){
   //delete hRHPMEa;
    delete hRHPMEb; 
   theFile->Close();
-  if (debug) cout << "************* Finished writing histograms to file" << endl;
+  if (debug) std::cout << "************* Finished writing histograms to file" << std::endl;
 }
 
 // The Analysis  (the main)
 
-void CSCMTCCAnalysis::analyze(const Event & event, const EventSetup& eventSetup){
+void CSCMTCCAnalysis::analyze(const edm::Event & event, const edm::EventSetup& eventSetup){
  
-  if (event.id().event()%100 == 0) cout << " Event analysed #Run: " << event.id().run()
-					<< " #Event: " << event.id().event() << endl;
+  if (event.id().event()%100 == 0) std::cout << " Event analysed #Run: " << event.id().run()
+					<< " #Event: " << event.id().event() << std::endl;
   
   // Get the CSC Geometry :
-  ESHandle<CSCGeometry> cscGeom;
+  edm::ESHandle<CSCGeometry> cscGeom;
   eventSetup.get<MuonGeometryRecord>().get(cscGeom);
  
   // Get the Segments collection :
-  Handle<CSCSegmentCollection> cscSegments; 
+  edm::Handle<CSCSegmentCollection> cscSegments; 
   event.getByLabel(cscSegmentLabel, cscSegments);  
-  if (debug) cout << "   #cscSegments: " << cscSegments->size() << endl;
+  if (debug) std::cout << "   #cscSegments: " << cscSegments->size() << std::endl;
 
   // Get the RecHits collection :
-  Handle<CSCRecHit2DCollection> recHits; 
+  edm::Handle<CSCRecHit2DCollection> recHits; 
   event.getByLabel(recHitLabel, recHits);  
-  if (debug) cout << "   #RecHits: " << recHits->size() << endl;
+  if (debug) std::cout << "   #RecHits: " << recHits->size() << std::endl;
   
   // Build Iterator for Calibrated Segments
   H2DRecHit *histo = 0;
@@ -509,7 +506,7 @@ void CSCMTCCAnalysis::segment_chamber( CSCDetId det_id ) {
 }
 
 // rotation x(local coordinate) -> u(strip coordinate)
-void CSCMTCCAnalysis::rotation(const CSCSegment* seg, LocalPoint fit_p[6], ESHandle<CSCGeometry> cscGeom){
+void CSCMTCCAnalysis::rotation(const CSCSegment* seg, LocalPoint fit_p[6], edm::ESHandle<CSCGeometry> cscGeom){
 
      const std::vector<CSCRecHit2D>& rh = (seg->specificRecHits());
      for (std::vector<CSCRecHit2D>::const_iterator rh_it = rh.begin(); rh_it != rh.end(); ++rh_it) 
@@ -528,7 +525,7 @@ void CSCMTCCAnalysis::rotation(const CSCSegment* seg, LocalPoint fit_p[6], ESHan
 }
 
 //hit information - in-strip / inter-strip
-void CSCMTCCAnalysis::hit_info(LocalPoint rh_p, CSCDetId det_id, ESHandle<CSCGeometry> cscGeom){
+void CSCMTCCAnalysis::hit_info(LocalPoint rh_p, CSCDetId det_id, edm::ESHandle<CSCGeometry> cscGeom){
 
      const CSCLayer* csclayer_1 = cscGeom->layer( det_id );
      int   hit_ch = (csclayer_1->geometry())->nearestStrip( rh_p );
@@ -541,7 +538,7 @@ void CSCMTCCAnalysis::hit_info(LocalPoint rh_p, CSCDetId det_id, ESHandle<CSCGeo
 }
 
 // residual calculation
-void CSCMTCCAnalysis::residual(const CSCSegment* seg, ESHandle<CSCGeometry> cscGeom){
+void CSCMTCCAnalysis::residual(const CSCSegment* seg, edm::ESHandle<CSCGeometry> cscGeom){
 
      int nu_hits = seg->nRecHits();
      double fit5hits_X[6]={999.0};
@@ -615,7 +612,7 @@ void CSCMTCCAnalysis::residual(const CSCSegment* seg, ESHandle<CSCGeometry> cscG
 
 
 // xpull calculation
-void CSCMTCCAnalysis::x_pull(const CSCSegment* seg, ESHandle<CSCGeometry> cscGeom){
+void CSCMTCCAnalysis::x_pull(const CSCSegment* seg, edm::ESHandle<CSCGeometry> cscGeom){
 
      LocalVector vec = seg->localDirection();
      LocalPoint seg_org = seg->localPosition();
@@ -653,18 +650,18 @@ void CSCMTCCAnalysis::x_pull(const CSCSegment* seg, ESHandle<CSCGeometry> cscGeo
          if (rh_err.xx()-fit_err < 0.0) continue;
          pull[j] = (rh_Lxyz.x() - fit_x) / sqrt(rh_err.xx()-fit_err);
 
-         /*cout <<"pull"<<j<<" = "<<pull[j] << endl;
-         cout <<"sk0= "<<SKErr[0] <<" sk2= "<<SKErr[2]<<"  sk4= "<<SKErr[4]<<endl;
-         cout <<"o_err= "<<o_err.xx() <<" v_err= "<<v_err.xx()<<endl;
-         cout <<"              dx =         "<< rh_Lxyz.x() - fit_x << endl;
-         cout <<"sqrt(rh_err.xx()-fit_err)= "<< sqrt(rh_err.xx()-fit_err) << endl;*/
+         /*std::cout <<"pull"<<j<<" = "<<pull[j] << std::endl;
+         std::cout <<"sk0= "<<SKErr[0] <<" sk2= "<<SKErr[2]<<"  sk4= "<<SKErr[4]<<std::endl;
+         std::cout <<"o_err= "<<o_err.xx() <<" v_err= "<<v_err.xx()<<std::endl;
+         std::cout <<"              dx =         "<< rh_Lxyz.x() - fit_x << std::endl;
+         std::cout <<"sqrt(rh_err.xx()-fit_err)= "<< sqrt(rh_err.xx()-fit_err) << std::endl;*/
      }    
 
 }
 
 
 // Segment fitting from SK Algorithm
-void CSCMTCCAnalysis::SKFitSlope(ESHandle<CSCGeometry> cscGeom, int rechit_size, std::vector<CSCRecHit2D> rh_V00){
+void CSCMTCCAnalysis::SKFitSlope(edm::ESHandle<CSCGeometry> cscGeom, int rechit_size, std::vector<CSCRecHit2D> rh_V00){
  
       HepMatrix M1(4,4,0);
       HepVector B1(4,0);

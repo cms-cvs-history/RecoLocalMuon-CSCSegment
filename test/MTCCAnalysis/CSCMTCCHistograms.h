@@ -14,8 +14,6 @@
 #include <string>
 #include <iostream>
 
-using namespace std;
-
 class H2DRecHit {
 public:
   /// Constructor from collection name

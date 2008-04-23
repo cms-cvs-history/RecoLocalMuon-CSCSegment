@@ -39,18 +39,14 @@
 #include <stdio.h>
 #include <algorithm>
 
-using namespace std;
-using namespace edm;
-
-
 // Constructor
-CSCMTCCOverlap::CSCMTCCOverlap(const ParameterSet& pset) {
+CSCMTCCOverlap::CSCMTCCOverlap(const edm::ParameterSet& pset) {
 
   // Get the various input parameters
   debug               = pset.getUntrackedParameter<bool>("debug");
-  rootFileName        = pset.getUntrackedParameter<string>("rootFileName");
-  recHitLabel         = pset.getUntrackedParameter<string>("recHitLabel");
-  cscSegmentLabel     = pset.getUntrackedParameter<string>("cscSegmentLabel");
+  rootFileName        = pset.getUntrackedParameter<std::string>("rootFileName");
+  recHitLabel         = pset.getUntrackedParameter<std::string>("recHitLabel");
+  cscSegmentLabel     = pset.getUntrackedParameter<std::string>("cscSegmentLabel");
   maxdxdz             = pset.getUntrackedParameter<double>("maxSlopedxdz");
   maxdydz             = pset.getUntrackedParameter<double>("maxSlopedydz");
   minnhits            = pset.getUntrackedParameter<int>("MinNhits");
@@ -60,7 +56,7 @@ CSCMTCCOverlap::CSCMTCCOverlap(const ParameterSet& pset) {
   minCosTheta12       = pset.getUntrackedParameter<double>("minCosTheta12");
   ChamberMarginAtEdges= pset.getUntrackedParameter<double>("ChamberMarginAtEdges");
 
-  cout << "[CSCMTCCOverlap] Constructor called" << endl;
+  std::cout << "[CSCMTCCOverlap] Constructor called" << std::endl;
  
   // Create the root file
   theFile = new TFile(rootFileName.c_str(), "RECREATE");
@@ -85,8 +81,8 @@ CSCMTCCOverlap::CSCMTCCOverlap(const ParameterSet& pset) {
 // Destructor
 CSCMTCCOverlap::~CSCMTCCOverlap(){
 
-  cout << "[CSCMTCCOverlap] Destructor called " << endl;
-  cout << "Number of segment pairs for overlapping region is " << Noverlaps << endl;  
+  std::cout << "[CSCMTCCOverlap] Destructor called " << std::endl;
+  std::cout << "Number of segment pairs for overlapping region is " << Noverlaps << std::endl;  
 
   // Create histograms for rechit/segment efficiency for each ME-1/2 chambers:
 
@@ -104,104 +100,104 @@ CSCMTCCOverlap::~CSCMTCCOverlap(){
   hsegeff = new TH1F("hsegeff", "6-hit segment eff", refMap.size()*2 + 2, 0, refMap.size()*2 + 2); 
   hsegeffCFEB = new TH1F("hsegeffCFEB", "6-hit segment eff", refMapCFEB.size()*2 + 2, 0, refMapCFEB.size()*2 + 2); 
 
-  cout << "Rechit efficiency for building hit on segment/layer" << endl;
+  std::cout << "Rechit efficiency for building hit on segment/layer" << std::endl;
   int ibin;
   for (chIdx = 0; chIdx < 7; chIdx++ ) {
     ibin = 0;
-    for (map<int,int>::const_iterator it = layMap[chIdx].begin(); it != layMap[chIdx].end(); it++) {
+    for (std::map<int,int>::const_iterator it = layMap[chIdx].begin(); it != layMap[chIdx].end(); it++) {
       ibin++;    
       float eff = 0.;
       if (segCount[chIdx] >0) eff = 1.* (float)it->second / segCount[chIdx]; 
       hlayeff[chIdx]->SetBinContent(ibin, eff);
-      if ( chIdx == 0 ) cout << "Layer" << it->first << "  : " << it->second << " " << segCount[chIdx] << "  " << eff << endl;
+      if ( chIdx == 0 ) std::cout << "Layer" << it->first << "  : " << it->second << " " << segCount[chIdx] << "  " << eff << std::endl;
     }
   }
   
   ibin = 0;
-  cout << "Rechit efficiency for building hit from 5 hit segment" << endl;
-  for (map<int,int>::const_iterator it = layMap5.begin(); it != layMap5.end(); it++) {
+  std::cout << "Rechit efficiency for building hit from 5 hit segment" << std::endl;
+  for (std::map<int,int>::const_iterator it = layMap5.begin(); it != layMap5.end(); it++) {
     ibin++;
     float eff = 0.;
     if (segCount5 >0) eff = 1.* (float)it->second / segCount5;
-    cout << "Layer" << it->first << "  : " << it->second << " " << segCount5 << "  " << eff << endl;
+    std::cout << "Layer" << it->first << "  : " << it->second << " " << segCount5 << "  " << eff << std::endl;
   }
 
-  cout << "Raw efficiency for building 6-hit segment" << endl;
+  std::cout << "Raw efficiency for building 6-hit segment" << std::endl;
   ibin = 0;
-  for (map<int,int>::const_iterator it = segMapRaw.begin(); it != segMapRaw.end(); it++) {
+  for (std::map<int,int>::const_iterator it = segMapRaw.begin(); it != segMapRaw.end(); it++) {
     ibin++;
     float eff = (float)it->second/(float)refMapRaw[it->first];
     hsegeffRaw->SetBinContent(ibin*2, eff);
     char chName2[8];
     sprintf(chName2,"ME1/2-%d",it->first);
-    std::string myCh = string(chName2);
+    std::string myCh = std::string(chName2);
     hsegeffRaw->GetXaxis()->SetBinLabel(ibin*2, chName2);
-    cout << "Chamber" << it->first << ": " << it->second << " " << refMapRaw[it->first]  << "  " << eff << endl;
+    std::cout << "Chamber" << it->first << ": " << it->second << " " << refMapRaw[it->first]  << "  " << eff << std::endl;
   }
 
   int segCount6 = 0;  
-  cout << "Efficiency for building 6-hit segment" << endl;
+  std::cout << "Efficiency for building 6-hit segment" << std::endl;
   ibin = 0;
-  for (map<int,int>::const_iterator it = segMap.begin(); it != segMap.end(); it++) {
+  for (std::map<int,int>::const_iterator it = segMap.begin(); it != segMap.end(); it++) {
     ibin++;
     float eff = (float)it->second/(float)refMap[it->first];
     segCount6 += (int)it->second;
     hsegeff->SetBinContent(ibin*2, eff);
     char chName2[8];
     sprintf(chName2,"ME1/2-%d",it->first);
-    std::string myCh = string(chName2);
+    std::string myCh = std::string(chName2);
     hsegeff->GetXaxis()->SetBinLabel(ibin*2, chName2);
-    cout << "Chamber" << it->first << ": " << it->second << " " << refMap[it->first]  << "  " << eff << endl;
+    std::cout << "Chamber" << it->first << ": " << it->second << " " << refMap[it->first]  << "  " << eff << std::endl;
   }
 
-  cout << "Efficiency for building 6-hit segment (away from CFEB boundaries)" << endl;  
+  std::cout << "Efficiency for building 6-hit segment (away from CFEB boundaries)" << std::endl;  
   ibin = 0;
-  for (map<int,int>::const_iterator it = segMapCFEB.begin(); it != segMapCFEB.end(); it++) {
+  for (std::map<int,int>::const_iterator it = segMapCFEB.begin(); it != segMapCFEB.end(); it++) {
     ibin++;
     float eff = (float)it->second/(float)refMapCFEB[it->first];   
     hsegeffCFEB->SetBinContent(ibin*2, eff);
     char chName2[8];
     sprintf(chName2,"ME1/2-%d",it->first);
-    std::string myCh = string(chName2);
+    std::string myCh = std::string(chName2);
     hsegeffCFEB->GetXaxis()->SetBinLabel(ibin*2, chName2);
-    cout << "Chamber" << it->first << ": " << it->second << " " << refMapCFEB[it->first]  << "  " << eff << endl;
+    std::cout << "Chamber" << it->first << ": " << it->second << " " << refMapCFEB[it->first]  << "  " << eff << std::endl;
   }
     
   float bineff = 6. * segCount6/(6. * segCount6 + segCount5);
 
-  cout << " " << endl;
-  cout << "*** Results from binomial statistics: " << endl;
-  cout << " " << endl;
-  cout << "Hit reconstruction efficiency =        6 * (# 6-hit seg)       " << endl;
-  cout << "                                -------------------------------" << endl;
-  cout << "                                6 (# 6-hit seg) + (# 5-hit seg)" << endl;
-  cout << " " << endl;
-  cout << "                              =       6 * " << segCount6                 << endl;
-  cout << "                                -------------------------------"         << endl;
-  cout << "                                6 * " << segCount6 << " + " << segCount5 << endl;
-  cout << " " << endl;
-  cout << "                              = " << bineff                              << endl;
-  cout << " " << endl;
-  cout << "*** Results from overlapping chambers " << endl;
-  cout << " " << endl;
+  std::cout << " " << std::endl;
+  std::cout << "*** Results from binomial statistics: " << std::endl;
+  std::cout << " " << std::endl;
+  std::cout << "Hit reconstruction efficiency =        6 * (# 6-hit seg)       " << std::endl;
+  std::cout << "                                -------------------------------" << std::endl;
+  std::cout << "                                6 (# 6-hit seg) + (# 5-hit seg)" << std::endl;
+  std::cout << " " << std::endl;
+  std::cout << "                              =       6 * " << segCount6                 << std::endl;
+  std::cout << "                                -------------------------------"         << std::endl;
+  std::cout << "                                6 * " << segCount6 << " + " << segCount5 << std::endl;
+  std::cout << " " << std::endl;
+  std::cout << "                              = " << bineff                              << std::endl;
+  std::cout << " " << std::endl;
+  std::cout << "*** Results from overlapping chambers " << std::endl;
+  std::cout << " " << std::endl;
 
   // Overlapping chambers:  hit + segment reconstruction efficiency
 
   ibin = 0;
-  cout << "Rechit efficiency for building hit on segment/layer" << endl;        
-  for (map<int,int>::const_iterator it = OverlayMap.begin(); it != OverlayMap.end(); it++) {
+  std::cout << "Rechit efficiency for building hit on segment/layer" << std::endl;        
+  for (std::map<int,int>::const_iterator it = OverlayMap.begin(); it != OverlayMap.end(); it++) {
     ibin++;
     float eff = 0.;
     if (OversegCount >0) eff = 1.* (float)it->second / OversegCount; 
-    cout << "Layer" << it->first << "  : " << it->second << " " << OversegCount << "  " << eff << endl;
+    std::cout << "Layer" << it->first << "  : " << it->second << " " << OversegCount << "  " << eff << std::endl;
   }
   ibin = 0;
-  cout << "Rechit efficiency for building hit on 5-hit segment/layer" << endl;
-  for (map<int,int>::const_iterator it = OverlayMap5.begin(); it != OverlayMap5.end(); it++) {
+  std::cout << "Rechit efficiency for building hit on 5-hit segment/layer" << std::endl;
+  for (std::map<int,int>::const_iterator it = OverlayMap5.begin(); it != OverlayMap5.end(); it++) {
     ibin++;
     float eff = 0.;
     if (OversegCount5 >0) eff = 1.* (float)it->second / OversegCount5;
-    cout << "Layer" << it->first << "  : " << it->second << " " << OversegCount5 << "  " << eff << endl;
+    std::cout << "Layer" << it->first << "  : " << it->second << " " << OversegCount5 << "  " << eff << std::endl;
   }
 
 
@@ -219,24 +215,24 @@ CSCMTCCOverlap::~CSCMTCCOverlap(){
   
   theFile->Close();
 
-  if (debug) cout << "[CSCMTCCOverlap] Finished writing histograms to file" << endl;  
+  if (debug) std::cout << "[CSCMTCCOverlap] Finished writing histograms to file" << std::endl;  
 }
 
 
 
 // The main
-void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
+void CSCMTCCOverlap::analyze(const edm::Event & event, const edm::EventSetup& eventSetup){
    
   // Get the CSC Geometry :
-  ESHandle<CSCGeometry> cscGeom;
+  edm::ESHandle<CSCGeometry> cscGeom;
   eventSetup.get<MuonGeometryRecord>().get(cscGeom);
   
   // Get the Segments collection :
-  Handle<CSCSegmentCollection> cscSegments; 
+  edm::Handle<CSCSegmentCollection> cscSegments; 
   event.getByLabel(cscSegmentLabel, cscSegments);  
   
   // Get the RecHits collection :
-  Handle<CSCRecHit2DCollection> recHits; 
+  edm::Handle<CSCRecHit2DCollection> recHits; 
   event.getByLabel(recHitLabel, recHits);  
   
 
@@ -364,7 +360,7 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
       
       // Have potentially segments within overlapping region...  
       
-      if (debug) cout << "Found potential track pair overlapping" << endl;
+      if (debug) std::cout << "Found potential track pair overlapping" << std::endl;
       
       // ...extract properties of segments to find out
       
@@ -382,7 +378,7 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
       float z2 = vec2.z();
       if (z2 == 0.) z2 = 0.001;
       if ( fabs(vec2.x()/z2) > maxdxdz || fabs(vec2.y()/z2) > maxdydz  ) continue;      
-      if (debug) cout << "2nd track satisfy entrance angle criteria" << endl;
+      if (debug) std::cout << "2nd track satisfy entrance angle criteria" << std::endl;
 
       
       // Need to tranform from local to global coordinates:
@@ -474,7 +470,7 @@ void CSCMTCCOverlap::analyze(const Event & event, const EventSetup& eventSetup){
       if (costheta12 < minCosTheta12) continue;
       if (dR1 > maxDR || dR2 > maxDR ) continue;
 
-      if (debug) cout << "*** Segment pair satisfies selection " << endl;
+      if (debug) std::cout << "*** Segment pair satisfies selection " << std::endl;
 
 
       // Look at rechit efficiency for the overlapping chambers
