@@ -56,8 +56,6 @@ CSCMTCCOverlap::CSCMTCCOverlap(const edm::ParameterSet& pset) {
   minCosTheta12       = pset.getUntrackedParameter<double>("minCosTheta12");
   ChamberMarginAtEdges= pset.getUntrackedParameter<double>("ChamberMarginAtEdges");
 
-  std::cout << "[CSCMTCCOverlap] Constructor called" << std::endl;
- 
   // Create the root file
   theFile = new TFile(rootFileName.c_str(), "RECREATE");
 
@@ -81,7 +79,6 @@ CSCMTCCOverlap::CSCMTCCOverlap(const edm::ParameterSet& pset) {
 // Destructor
 CSCMTCCOverlap::~CSCMTCCOverlap(){
 
-  std::cout << "[CSCMTCCOverlap] Destructor called " << std::endl;
   std::cout << "Number of segment pairs for overlapping region is " << Noverlaps << std::endl;  
 
   // Create histograms for rechit/segment efficiency for each ME-1/2 chambers:
