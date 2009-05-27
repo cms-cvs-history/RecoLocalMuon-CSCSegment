@@ -663,9 +663,9 @@ void CSCMTCCAnalysis::x_pull(const CSCSegment* seg, edm::ESHandle<CSCGeometry> c
 // Segment fitting from SK Algorithm
 void CSCMTCCAnalysis::SKFitSlope(edm::ESHandle<CSCGeometry> cscGeom, int rechit_size, std::vector<CSCRecHit2D> rh_V00){
  
-      HepMatrix M1(4,4,0);
-      HepVector B1(4,0);
-      HepMatrix Dmatrix1(rechit_size*2, 4);
+      CLHEP::HepMatrix M1(4,4,0);
+      CLHEP::HepVector B1(4,0);
+      CLHEP::HepMatrix Dmatrix1(rechit_size*2, 4);
       AlgebraicSymMatrix Wmatrix1(rechit_size*2, 0);
       int row1 = 0;
       for (std::vector<CSCRecHit2D>::const_iterator rh_i0 = rh_V00.begin(); rh_i0!=rh_V00.end(); ++rh_i0)
@@ -684,7 +684,7 @@ void CSCMTCCAnalysis::SKFitSlope(edm::ESHandle<CSCGeometry> cscGeom, int rechit_
     	  double v = rh0_xyz.y();
        	  double z = lrh0_xyz.z();
           // ptc: Covariance matrix of local errors 
-      	  HepMatrix IC(2,2);
+      	  CLHEP::HepMatrix IC(2,2);
 	  IC(1,1) = rh_i0->localPositionError().xx();
           IC(1,2) = rh_i0->localPositionError().xy();
           IC(2,1) = IC(1,2); // since Cov is symmetric
@@ -728,7 +728,7 @@ void CSCMTCCAnalysis::SKFitSlope(edm::ESHandle<CSCGeometry> cscGeom, int rechit_
                // SK Fit error calculation end !
       }
       // Solve the matrix equation using CLHEP's 'solve'
-      HepVector p1 = solve(M1, B1);
+      CLHEP::HepVector p1 = solve(M1, B1);
       SKFit[0] = p1(1);   // origin of x
       SKFit[1] = p1(2);   // origin of y
       SKFit[2] = p1(3);   // slope of x
