@@ -14,12 +14,3 @@
    <flags EDM_PLUGIN=1>
 </library>
 
-<library file=MTCCAnalysis/CSCMTCCAnalysis.cc name=CSCMTCCAnalysis>
-   <flags EDM_PLUGIN=1>
-</library>
-
-<library file=MTCCAnalysis/CSCMTCCOverlap.cc name=CSCMTCCOverlap>
-   <flags EDM_PLUGIN=1>
-</library>
-
-
